@@ -1,0 +1,8 @@
+# BottleEngine
+
+A gamme-engine written in Java for games with networking features.
+
+## Usage
+
+You can use the whole engine or only the modules you need.
+Documentation for the modules can be found in their folders.
