@@ -5,11 +5,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import java.awt.Color;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -18,6 +15,7 @@ import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL;
 
 import tv.floeze.bottleengine.client.graphics.io.ImageLoader;
+import tv.floeze.bottleengine.common.threads.Runner;
 
 /**
  * A window that can display graphics.
@@ -40,9 +38,6 @@ public class Window {
 	 * 
 	 * - make a Viewport class that handles the rendering and adds the option to
 	 * have multiple viewports
-	 * 
-	 * - add a ThreadManager class that handles the creation (and destruction) of
-	 * threads and executing code on those threads including the main thread
 	 * 
 	 * 
 	 * TODOs:
@@ -117,16 +112,13 @@ public class Window {
 
 	/**
 	 * The number of currently open windows
-	 * 
-	 * @see #executeMain(Runnable)
-	 * @see #executeMain(Callable)
 	 */
 	private static final AtomicInteger windowNumber = new AtomicInteger(0);
 
 	/**
-	 * A queue of {@link Runnable}s to run on the main thread
+	 * A {@link Runnable} to run once the last window has been closed
 	 */
-	private static final BlockingQueue<Runnable> mainRunnables = new LinkedBlockingQueue<Runnable>();
+	private static Runnable onLastWindowClosed = Runner.MAIN::stop;
 
 	/**
 	 * The handle of this window
@@ -136,16 +128,7 @@ public class Window {
 	/**
 	 * The thread this window renders in
 	 */
-	private final Thread thread;
-
-	/**
-	 * A queue of {@link Runnable}s to run on the thread this window renders in
-	 * ({@link #thread})
-	 * 
-	 * @see #execute(Runnable)
-	 * @see #execute(Callable)
-	 */
-	private final BlockingQueue<Runnable> runnables = new LinkedBlockingQueue<Runnable>();
+	private final Runner runner;
 
 	/**
 	 * The background color that is shown where nothing is rendered or {@code null}
@@ -161,6 +144,10 @@ public class Window {
 	 * @see #setCloseHandler(Supplier)
 	 */
 	private Supplier<Boolean> closeHandler = () -> true;
+
+	static {
+		Runner.MAIN.repeat(GLFW::glfwPollEvents);
+	}
 
 	/**
 	 * Creates a new window.
@@ -192,11 +179,14 @@ public class Window {
 		handle = glfwCreateWindow(width, height, title, monitor > 0 ? monitor : NULL,
 				share != null ? share.handle : NULL);
 
+		// create Thread
+		runner = new Runner().runInNewThread("renderer-" + System.identityHashCode(this), false);
+
 		// set callbacks
-		glfwSetFramebufferSizeCallback(handle, (window, w, h) -> execute(() -> glViewport(0, 0, w, h)));
+		glfwSetFramebufferSizeCallback(handle, (window, w, h) -> runner.run(() -> glViewport(0, 0, w, h)));
 		glfwSetWindowCloseCallback(handle, window -> glfwSetWindowShouldClose(window, closeHandler.get()));
 
-		thread = new Thread(() -> {
+		runner.run(() -> {
 			glfwMakeContextCurrent(handle);
 			// v-sync
 			glfwSwapInterval(1);
@@ -204,26 +194,19 @@ public class Window {
 			GL.createCapabilities();
 
 			glViewport(0, 0, width, height);
-
-			while (!glfwWindowShouldClose(handle)) {
-				while (!runnables.isEmpty())
-					runnables.poll().run();
-
+		}).thenRun(() -> runner.repeat(() -> {
+			if (!glfwWindowShouldClose(handle)) {
 				clear();
 
 				render();
 
 				glfwSwapBuffers(handle);
+			} else {
+				runner.stop();
+				glfwMakeContextCurrent(NULL);
+				closeWindow(handle);
 			}
-
-			glfwMakeContextCurrent(NULL);
-			executeMain(() -> {
-				glfwDestroyWindow(handle);
-				windowNumber.decrementAndGet();
-			});
-
-		}, "renderer-" + title.toString().replaceAll(" ", "_"));
-		thread.start();
+		}));
 
 		windowNumber.incrementAndGet();
 	}
@@ -328,78 +311,54 @@ public class Window {
 	 * Executes a {@link Runnable} on the thread this window renders on
 	 * 
 	 * @param runnable {@link Runnable} to run
-	 * @return a {@link Future} that is completed once the {@link Runnable} has
-	 *         completed running
+	 * @return a {@link CompletableFuture} that is completed once the
+	 *         {@link Runnable} has completed running
 	 */
-	public Future<Void> execute(Runnable runnable) {
-		FutureTask<Void> futureTask = new FutureTask<Void>(runnable, null);
-		runnables.add(futureTask);
-		return futureTask;
+	public CompletableFuture<Void> execute(Runnable runnable) {
+		return runner.run(runnable);
 	}
 
 	/**
 	 * Executes a {@link Callable} on the thread this window renders on
 	 * 
 	 * @param callable {@link Callable} to run
-	 * @return a {@link Future} that is completed with the return value of the
-	 *         {@link Callable} once the {@link Callable} has completed running
+	 * @return a {@link CompletableFuture} that is completed with the return value
+	 *         of the {@link Callable} once the {@link Callable} has completed
+	 *         running
 	 */
-	public <T> Future<T> execute(Callable<T> callable) {
-		FutureTask<T> futureTask = new FutureTask<T>(callable);
-		runnables.add(futureTask);
-		return futureTask;
+	public <T> CompletableFuture<T> execute(Supplier<T> supplier) {
+		return runner.run(supplier);
 	}
 
 	/**
-	 * Executes a {@link Runnable} on the main thread
-	 * 
-	 * @param runnable {@link Runnable} to run
-	 * @return a {@link Future} that is completed once the {@link Runnable} has
-	 *         completed running
+	 * Call this, when the window is closed.<br />
+	 * This closes the window with the given handle, decrements
+	 * {@link #windowNumber} and runs {@link #onLastWindowClosed} if
+	 * applicaple.<br />
+	 * This will all be executed in the main Thread.
 	 */
-	public Future<Void> executeMain(Runnable runnable) {
-		FutureTask<Void> futureTask = new FutureTask<Void>(runnable, null);
-		mainRunnables.add(futureTask);
-		return futureTask;
+	private static void closeWindow(long handle) {
+		Runner.MAIN.run(() -> {
+			glfwDestroyWindow(handle);
+			if (windowNumber.decrementAndGet() <= 0)
+				onLastWindowClosed.run();
+		});
 	}
 
 	/**
-	 * Executes a {@link Callable} on the main thread
+	 * Runs a {@link Runnable} once the last {@link Window} has been closed.<br />
+	 * By default, this will stop {@link Runner#MAIN}.
 	 * 
-	 * @param callable {@link Callable} to run
-	 * @return a {@link Future} that is completed with the return value of the
-	 *         {@link Callable} once the {@link Callable} has completed running
+	 * @param onLastWindowClosed a new {@link Runnable} to run once all
+	 *                           {@link Window}s are closed or {@code null} if
+	 *                           nothing should be done
 	 */
-	public <T> Future<T> executeMain(Callable<T> callable) {
-		FutureTask<T> futureTask = new FutureTask<T>(callable);
-		mainRunnables.add(futureTask);
-		return futureTask;
-	}
-
-	/**
-	 * Polls events and allows to execute methods on the main thread.
-	 * 
-	 * This method blocks until all windows are closed.
-	 * 
-	 * Call this on the main thread only!
-	 */
-	public static synchronized void mainThread() {
-		windowNumber.updateAndGet(i -> i < 0 ? 0 : i);
-		while (windowNumber.get() > 0) {
-			while (!mainRunnables.isEmpty())
-				mainRunnables.poll().run();
-			glfwPollEvents();
-		}
-	}
-
-	/**
-	 * @param application application code to run in separate Thread
-	 * 
-	 * @see #mainThread()
-	 */
-	public static synchronized void mainThread(Runnable application) {
-		new Thread(application, "application").start();
-		mainThread();
+	public static void setLastWindowClosedHandler(Runnable onLastWindowClosed) {
+		if (onLastWindowClosed == null)
+			Window.onLastWindowClosed = () -> {
+			};
+		else
+			Window.onLastWindowClosed = onLastWindowClosed;
 	}
 
 }

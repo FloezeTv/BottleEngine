@@ -14,5 +14,6 @@
 	</properties>
 	<modules>
 		<module>client/graphics</module>
+		<module>common/threads</module>
 	</modules>
 </project>

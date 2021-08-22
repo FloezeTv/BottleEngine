@@ -26,6 +26,13 @@
 	</dependencyManagement>
 
 	<dependencies>
+		<!-- BottleEngine -->
+		<dependency>
+			<groupId>tv.floeze.bottleengine.common</groupId>
+			<artifactId>threads</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- LWJGL -->
 		<dependency>
 			<groupId>org.lwjgl</groupId>
