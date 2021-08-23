@@ -5,6 +5,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,9 +37,6 @@ public class Window {
 	 * Considerations:
 	 * 
 	 * - add a builder class
-	 * 
-	 * - make a Viewport class that handles the rendering and adds the option to
-	 * have multiple viewports
 	 * 
 	 * 
 	 * TODOs:
@@ -131,6 +130,16 @@ public class Window {
 	private final Runner runner;
 
 	/**
+	 * The viewports
+	 */
+	private final List<Viewport> viewports = new ArrayList<Viewport>();
+
+	/**
+	 * The size of the window
+	 */
+	private int width, height;
+
+	/**
 	 * The background color that is shown where nothing is rendered or {@code null}
 	 * if background should not be cleared
 	 * 
@@ -178,12 +187,17 @@ public class Window {
 
 		handle = glfwCreateWindow(width, height, title, monitor > 0 ? monitor : NULL,
 				share != null ? share.handle : NULL);
+		this.width = width;
+		this.height = height;
 
 		// create Thread
 		runner = new Runner().runInNewThread("renderer-" + System.identityHashCode(this), false);
 
 		// set callbacks
-		glfwSetFramebufferSizeCallback(handle, (window, w, h) -> runner.run(() -> glViewport(0, 0, w, h)));
+		glfwSetFramebufferSizeCallback(handle, (window, w, h) -> {
+			this.width = w;
+			this.height = h;
+		});
 		glfwSetWindowCloseCallback(handle, window -> glfwSetWindowShouldClose(window, closeHandler.get()));
 
 		runner.run(() -> {
@@ -295,7 +309,84 @@ public class Window {
 	 * Renders to the screen
 	 */
 	private void render() {
-		// TODO: do some actual rendering
+		for (Viewport viewport : viewports)
+			viewport.render(width, height);
+	}
+
+	/**
+	 * Adds a {@link Viewport} to this {@link Window}
+	 * 
+	 * @param viewport {@link Viewport} to add
+	 * @return true if the {@link Viewport} has been added, false if this
+	 *         {@link Window} already contains the {@link Viewport}
+	 */
+	public boolean addViewport(Viewport viewport) {
+		if (!viewports.contains(viewport)) {
+			viewports.add(viewport);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Adds a {@link Viewport} at the specified index
+	 * 
+	 * @param index    index to add {@link Viewport} at
+	 * @param viewport {@link Viewport} to add
+	 * @return true if the {@link Viewport} has been added, false if this
+	 *         {@link Window} already contains the {@link Viewport}
+	 */
+	public boolean addViewport(int index, Viewport viewport) {
+		if (!viewports.contains(viewport)) {
+			viewports.add(Math.max(Math.min(index, viewports.size()), 0), viewport);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Adds a {@link Viewport} underneath another {@link Viewport}
+	 * 
+	 * @param check    {@link Viewport} that already exists
+	 * @param viewport {@link Viewport} to add underneath {@code check}
+	 * @return true if the {@link Viewport} has been added, false if this
+	 *         {@link Window} already contains the {@link Viewport} or does not
+	 *         contain the {@code check} {@link Viewport}
+	 */
+	public boolean addViewportUnder(Viewport check, Viewport viewport) {
+		if (!viewports.contains(viewport) && viewports.contains(check)) {
+			viewports.add(viewports.indexOf(check), viewport);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Adds a {@link Viewport} above another {@link Viewport}
+	 * 
+	 * @param check    {@link Viewport} that already exists
+	 * @param viewport {@link Viewport} to add above {@code check}
+	 * @return true if the {@link Viewport} has been added, false if this
+	 *         {@link Window} already contains the {@link Viewport} or does not
+	 *         contain the {@code check} {@link Viewport}
+	 */
+	public boolean addViewportOver(Viewport check, Viewport viewport) {
+		if (!viewports.contains(viewport) && viewports.contains(check)) {
+			viewports.add(viewports.indexOf(check) + 1, viewport);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Removes a {@link Viewport} from this {@link Window}
+	 * 
+	 * @param viewport {@link Viewport} to remove
+	 * @return true if {@link Window} contained the {@link Viewport}, false
+	 *         otherwise
+	 */
+	public boolean removeViewport(Viewport viewport) {
+		return viewports.remove(viewport);
 	}
 
 	/**
