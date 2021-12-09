@@ -135,11 +135,6 @@ public class Window {
 	private final List<Viewport> viewports = new ArrayList<Viewport>();
 
 	/**
-	 * The size of the window
-	 */
-	private int width, height;
-
-	/**
 	 * The background color that is shown where nothing is rendered or {@code null}
 	 * if background should not be cleared
 	 * 
@@ -187,17 +182,13 @@ public class Window {
 
 		handle = glfwCreateWindow(width, height, title, monitor > 0 ? monitor : NULL,
 				share != null ? share.handle : NULL);
-		this.width = width;
-		this.height = height;
+		updateViewports(width, height);
 
 		// create Thread
 		runner = new Runner().runInNewThread("renderer-" + System.identityHashCode(this), false);
 
 		// set callbacks
-		glfwSetFramebufferSizeCallback(handle, (window, w, h) -> {
-			this.width = w;
-			this.height = h;
-		});
+		glfwSetFramebufferSizeCallback(handle, (window, w, h) -> execute(() -> updateViewports(w, h)));
 		glfwSetWindowCloseCallback(handle, window -> glfwSetWindowShouldClose(window, closeHandler.get()));
 
 		runner.run(() -> {
@@ -293,6 +284,17 @@ public class Window {
 	}
 
 	/**
+	 * Updates all {@link Viewport}s with the new size
+	 * 
+	 * @param width  width of the window
+	 * @param height height of the window
+	 */
+	private void updateViewports(int width, int height) {
+		for (Viewport viewport : viewports)
+			viewport.updateSize(width, height);
+	}
+
+	/**
 	 * Clears the screen
 	 */
 	private void clear() {
@@ -309,8 +311,7 @@ public class Window {
 	 * Renders to the screen
 	 */
 	private void render() {
-		for (Viewport viewport : viewports)
-			viewport.render(width, height);
+		viewports.forEach(Viewport::render);
 	}
 
 	/**

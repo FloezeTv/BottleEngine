@@ -140,5 +140,12 @@
 			<artifactId>lwjgl-opengl</artifactId>
 			<classifier>natives-windows-x86</classifier>
 		</dependency>
+
+		<!-- JOML -->
+		<dependency>
+			<groupId>org.joml</groupId>
+			<artifactId>joml</artifactId>
+			<version>1.10.1</version>
+		</dependency>
 	</dependencies>
 </project>

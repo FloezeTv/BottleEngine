@@ -2,6 +2,8 @@ package tv.floeze.bottleengine.client.graphics.window;
 
 import static org.lwjgl.opengl.GL11.glViewport;
 
+import tv.floeze.bottleengine.client.graphics.camera.Camera;
+
 /**
  * A viewport that renders to a part of the window.
  * 
@@ -22,10 +24,22 @@ public class Viewport {
 	private boolean visible = true;
 
 	/**
-	 * Creates a new Viewport that fills the entire window
+	 * The way the content fits this viewport
 	 */
-	public Viewport() {
-		this(0, 0, 1, 1);
+	private AspectMode aspectMode = AspectMode.SCALE;
+
+	/**
+	 * The {@link Camera} of this {@link Viewport}
+	 */
+	private Camera camera;
+
+	/**
+	 * Creates a new Viewport that fills the entire window
+	 * 
+	 * @param camera the {@link Camera} of this {@link Viewport}
+	 */
+	public Viewport(Camera camera) {
+		this(0, 0, 1, 1, camera);
 	}
 
 	/**
@@ -35,9 +49,11 @@ public class Viewport {
 	 * @param yStart percent of window height the {@link Viewport} starts at
 	 * @param xEnd   percent of window width the {@link Viewport} ends at
 	 * @param yEnd   percent of window height the {@link Viewport} ends at
+	 * @param camera the {@link Camera} of this {@link Viewport}
 	 */
-	public Viewport(double xStart, double yStart, double xEnd, double yEnd) {
+	public Viewport(double xStart, double yStart, double xEnd, double yEnd, Camera camera) {
 		setBounds(xStart, yStart, xEnd, yEnd);
+		setCamera(camera);
 	}
 
 	/**
@@ -93,6 +109,15 @@ public class Viewport {
 	}
 
 	/**
+	 * Changes the {@link Camera} of this viewport
+	 * 
+	 * @param camera the new {@link Camera} of this viewport
+	 */
+	public void setCamera(Camera camera) {
+		this.camera = camera;
+	}
+
+	/**
 	 * Sets if this {@link Viewport} should be visible
 	 * 
 	 * @param visible true if this {@link Viewport} should be visible, false
@@ -112,20 +137,32 @@ public class Viewport {
 	}
 
 	/**
-	 * Renders this viewport
+	 * Updates the size of this viewport
 	 * 
 	 * @param width  width of the window to render in
 	 * @param height height of the window to render in
 	 */
-	public void render(int width, int height) {
-		if (!visible)
-			return;
-
+	public void updateSize(int width, int height) {
 		int x = (int) (width * xStart);
 		int y = (int) (height * yStart);
 		int w = (int) (width * xEnd - x);
 		int h = (int) (height * yEnd - y);
-		glViewport(x, y, w, h);
+
+		AspectMode.Size viewportSize = aspectMode.getSize(x, y, w, h, camera.getWidth(), camera.getHeight());
+
+		glViewport(viewportSize.x, viewportSize.y, viewportSize.width, viewportSize.height);
+
+		camera.updateProjection(viewportSize.cameraWidth, viewportSize.cameraHeight);
+	}
+
+	/**
+	 * Renders this viewport
+	 */
+	public void render() {
+		if (!visible)
+			return;
+
+		camera.setMatrices();
 
 		// TODO: do some actual rendering
 	}
