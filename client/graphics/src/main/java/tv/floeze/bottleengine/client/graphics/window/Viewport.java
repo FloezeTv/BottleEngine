@@ -2,6 +2,7 @@ package tv.floeze.bottleengine.client.graphics.window;
 
 import static org.lwjgl.opengl.GL11.glViewport;
 
+import tv.floeze.bottleengine.client.graphics.Renderable;
 import tv.floeze.bottleengine.client.graphics.camera.Camera;
 
 /**
@@ -10,7 +11,7 @@ import tv.floeze.bottleengine.client.graphics.camera.Camera;
  * @author Floeze
  *
  */
-public class Viewport {
+public class Viewport implements Renderable {
 
 	/**
 	 * Percentage where the {@link Viewport} should start/end in percent of the
