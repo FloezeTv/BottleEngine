@@ -15,5 +15,6 @@
 	<modules>
 		<module>client/graphics</module>
 		<module>common/threads</module>
+		<module>common/io</module>
 	</modules>
 </project>
