@@ -20,6 +20,11 @@ public class Viewport implements Renderable {
 	private double xStart, yStart, xEnd, yEnd;
 
 	/**
+	 * The size of this viewport
+	 */
+	private AspectMode.Size viewportSize;
+
+	/**
 	 * If this viewport is currently visible
 	 */
 	private boolean visible = true;
@@ -149,9 +154,7 @@ public class Viewport implements Renderable {
 		int w = (int) (width * xEnd - x);
 		int h = (int) (height * yEnd - y);
 
-		AspectMode.Size viewportSize = aspectMode.getSize(x, y, w, h, camera.getWidth(), camera.getHeight());
-
-		glViewport(viewportSize.x, viewportSize.y, viewportSize.width, viewportSize.height);
+		viewportSize = aspectMode.getSize(x, y, w, h, camera.getWidth(), camera.getHeight());
 
 		camera.updateProjection(viewportSize.cameraWidth, viewportSize.cameraHeight);
 	}
@@ -162,6 +165,8 @@ public class Viewport implements Renderable {
 	public void render() {
 		if (!visible)
 			return;
+
+		glViewport(viewportSize.x, viewportSize.y, viewportSize.width, viewportSize.height);
 
 		camera.setMatrices();
 

@@ -47,6 +47,13 @@ public interface AspectMode {
 
 		public Size() {
 		}
+
+		@Override
+		public String toString() {
+			return "Size [x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + ", cameraWidth="
+					+ cameraWidth + ", cameraHeight=" + cameraHeight + "]";
+		}
+
 	}
 
 	/**

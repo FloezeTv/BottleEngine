@@ -295,6 +295,26 @@ public class Window {
 	}
 
 	/**
+	 * Updates all {@link Viewport}s of this {@link Window}
+	 */
+	public void updateViewports() {
+		int[] width = new int[1], height = new int[1];
+		glfwGetWindowSize(handle, width, height);
+		updateViewports(width[0], height[0]);
+	}
+
+	/**
+	 * Updates a single {@link Viewport} with the size of this {@link Window}
+	 * 
+	 * @param viewport {@link Viewport} to update
+	 */
+	private void updateViewport(Viewport viewport) {
+		int[] width = new int[1], height = new int[1];
+		glfwGetWindowSize(handle, width, height);
+		viewport.updateSize(width[0], height[0]);
+	}
+
+	/**
 	 * Clears the screen
 	 */
 	private void clear() {
@@ -311,7 +331,12 @@ public class Window {
 	 * Renders to the screen
 	 */
 	private void render() {
-		viewports.forEach(Viewport::render);
+		try {
+			viewports.forEach(Viewport::render);
+		} catch (Exception e) {
+			// rendering should not stop because an exception is thrown
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -323,6 +348,7 @@ public class Window {
 	 */
 	public boolean addViewport(Viewport viewport) {
 		if (!viewports.contains(viewport)) {
+			updateViewport(viewport);
 			viewports.add(viewport);
 			return true;
 		}
@@ -339,6 +365,7 @@ public class Window {
 	 */
 	public boolean addViewport(int index, Viewport viewport) {
 		if (!viewports.contains(viewport)) {
+			updateViewport(viewport);
 			viewports.add(Math.max(Math.min(index, viewports.size()), 0), viewport);
 			return true;
 		}
@@ -356,6 +383,7 @@ public class Window {
 	 */
 	public boolean addViewportUnder(Viewport check, Viewport viewport) {
 		if (!viewports.contains(viewport) && viewports.contains(check)) {
+			updateViewport(viewport);
 			viewports.add(viewports.indexOf(check), viewport);
 			return true;
 		}
@@ -373,6 +401,7 @@ public class Window {
 	 */
 	public boolean addViewportOver(Viewport check, Viewport viewport) {
 		if (!viewports.contains(viewport) && viewports.contains(check)) {
+			updateViewport(viewport);
 			viewports.add(viewports.indexOf(check) + 1, viewport);
 			return true;
 		}
