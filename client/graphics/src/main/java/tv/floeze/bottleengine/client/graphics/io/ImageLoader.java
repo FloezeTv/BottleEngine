@@ -1,5 +1,8 @@
 package tv.floeze.bottleengine.client.graphics.io;
 
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL30.glGenerateMipmap;
+
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -113,6 +116,20 @@ public class ImageLoader {
 	 * @return a {@link GLFWImage} with the loaded image data
 	 */
 	public GLFWImage asGLFWImage() {
+		ByteBuffer bytes = asByteBuffer();
+
+		GLFWImage glfwImage = GLFWImage.malloc();
+		glfwImage.set(data.getWidth(), data.getHeight(), bytes);
+
+		return glfwImage;
+	}
+
+	/**
+	 * Loads the {@link #data} as a {@link ByteBuffer}
+	 * 
+	 * @return the loaded {@link ByteBuffer}
+	 */
+	private ByteBuffer asByteBuffer() {
 		int[] rgb = data.getRGB(0, 0, data.getWidth(), data.getHeight(), null, 0, data.getWidth());
 		ByteBuffer bytes = ByteBuffer.allocateDirect(rgb.length * 4);
 		for (int pixel : rgb) {
@@ -123,11 +140,7 @@ public class ImageLoader {
 			bytes.put((byte) ((pixel >> 24) & 0xFF));
 		}
 		bytes.flip();
-
-		GLFWImage glfwImage = GLFWImage.malloc();
-		glfwImage.set(data.getWidth(), data.getHeight(), bytes);
-
-		return glfwImage;
+		return bytes;
 	}
 
 	/**
@@ -141,6 +154,22 @@ public class ImageLoader {
 		buffer.put(0, img);
 		img.free();
 		return buffer;
+	}
+
+	/**
+	 * Converts the loaded image to a {@link Texture}
+	 * 
+	 * @return a {@link Texture} with the loaded image data
+	 */
+	public Texture asTexture() {
+		ByteBuffer bytes = asByteBuffer();
+
+		int texture = glGenTextures();
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data.getWidth(), data.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		return new Texture(texture);
 	}
 
 }
