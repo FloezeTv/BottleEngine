@@ -33,6 +33,8 @@ public final class Runner implements Runnable {
 	 */
 	public static final Runner MAIN = new Runner();
 
+	private static final ThreadLocal<Runner> currentRunner = new ThreadLocal<>();
+
 	/**
 	 * The possible states a {@link Runner} can have.
 	 * 
@@ -165,6 +167,8 @@ public final class Runner implements Runnable {
 	 */
 	@Override
 	public synchronized void run() {
+		currentRunner.set(this);
+
 		state.set(State.RUNNING);
 		onStart.run();
 
@@ -189,6 +193,8 @@ public final class Runner implements Runnable {
 
 		state.set(State.IDLE);
 		onFinish.run();
+
+		currentRunner.set(null);
 	}
 
 	private void runRunnables() {
@@ -304,6 +310,10 @@ public final class Runner implements Runnable {
 		if (state.get().equals(State.IDLE))
 			this.onStart = onStart;
 		return this;
+	}
+
+	public static Runner getCurrentRunner() {
+		return currentRunner.get();
 	}
 
 }
