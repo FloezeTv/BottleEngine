@@ -40,12 +40,27 @@ public class Viewport implements Renderable {
 	private Camera camera;
 
 	/**
+	 * The content to render
+	 */
+	private Renderable content;
+
+	/**
 	 * Creates a new Viewport that fills the entire window
 	 * 
 	 * @param camera the {@link Camera} of this {@link Viewport}
 	 */
 	public Viewport(Camera camera) {
 		this(0, 0, 1, 1, camera);
+	}
+
+	/**
+	 * Creates a new Viewport that fills the entire window
+	 * 
+	 * @param camera  the {@link Camera} of this {@link Viewport}
+	 * @param content the {@link Renderable} to render
+	 */
+	public Viewport(Camera camera, Renderable content) {
+		this(0, 0, 1, 1, camera, content);
 	}
 
 	/**
@@ -58,8 +73,23 @@ public class Viewport implements Renderable {
 	 * @param camera the {@link Camera} of this {@link Viewport}
 	 */
 	public Viewport(double xStart, double yStart, double xEnd, double yEnd, Camera camera) {
+		this(xStart, yStart, xEnd, yEnd, camera, Renderable.NOTHING);
+	}
+
+	/**
+	 * Creates a new viewport that fills a part of the window
+	 * 
+	 * @param xStart  percent of window width the {@link Viewport} starts at
+	 * @param yStart  percent of window height the {@link Viewport} starts at
+	 * @param xEnd    percent of window width the {@link Viewport} ends at
+	 * @param yEnd    percent of window height the {@link Viewport} ends at
+	 * @param camera  the {@link Camera} of this {@link Viewport}
+	 * @param content the {@link Renderable} to render
+	 */
+	public Viewport(double xStart, double yStart, double xEnd, double yEnd, Camera camera, Renderable content) {
 		setBounds(xStart, yStart, xEnd, yEnd);
 		setCamera(camera);
+		setContent(content);
 	}
 
 	/**
@@ -123,6 +153,12 @@ public class Viewport implements Renderable {
 		this.camera = camera;
 	}
 
+	public void setContent(Renderable renderable) {
+		if (renderable == null)
+			renderable = Renderable.NOTHING;
+		content = renderable;
+	}
+
 	/**
 	 * Sets if this {@link Viewport} should be visible
 	 * 
@@ -162,6 +198,7 @@ public class Viewport implements Renderable {
 	/**
 	 * Renders this viewport
 	 */
+	@Override
 	public void render() {
 		if (!visible)
 			return;
@@ -170,7 +207,7 @@ public class Viewport implements Renderable {
 
 		camera.setMatrices();
 
-		// TODO: do some actual rendering
+		content.render();
 	}
 
 }
