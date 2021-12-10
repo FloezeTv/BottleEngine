@@ -198,6 +198,10 @@ public class Window {
 
 			GL.createCapabilities();
 
+			// Enable blending
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 			glViewport(0, 0, width, height);
 		}).thenRun(() -> runner.repeat(() -> {
 			if (!glfwWindowShouldClose(handle)) {
