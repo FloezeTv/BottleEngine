@@ -5,6 +5,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import java.awt.Color;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -16,6 +17,7 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLUtil;
+import org.lwjgl.system.MemoryUtil;
 
 import tv.floeze.bottleengine.client.graphics.io.ImageLoader;
 import tv.floeze.bottleengine.common.threads.Runner;
@@ -160,6 +162,11 @@ public class Window {
 	}
 
 	/**
+	 * The saved position before going into fullscreen
+	 */
+	private IntBuffer savedX, savedY, savedWidth, savedHeight;
+
+	/**
 	 * Creates a new window.
 	 * 
 	 * Creates a new thread that renders the graphics to the window.
@@ -177,8 +184,7 @@ public class Window {
 	 * @see GLFW#glfwCreateWindow(int, int, CharSequence, long, long)
 	 */
 	public Window(int width, int height, CharSequence title, long monitor, Window share) {
-		if (!glfwInit())
-			throw new RuntimeException("Couldn't initialize GLWF");
+		initGlfw();
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -272,6 +278,52 @@ public class Window {
 	 */
 	public void setSize(int width, int height) {
 		glfwSetWindowSize(handle, width, height);
+	}
+
+	/**
+	 * Gets if this {@link Window} is fullscreen
+	 * 
+	 * @return {@code true} if this {@link Window} is fullscreen, {@code false}
+	 *         otherwise
+	 */
+	public boolean isFullscreen() {
+		return glfwGetWindowMonitor(handle) != MemoryUtil.NULL;
+	}
+
+	/**
+	 * Sets this {@link Window} to be fullscreen on the primary monitor
+	 * 
+	 * @param fullscreen {@code true} to make the {@link Window} fullscreen on the
+	 *                   primary monitor, {@code false} if it should go back to
+	 *                   windowed mode
+	 */
+	public void setFullscreen(boolean fullscreen) {
+		setFullscreen(fullscreen ? Monitor.getPrimaryMonitor() : null);
+	}
+
+	/**
+	 * Sets this {@link Window} to be fullscreen on the specified {@link Monitor}
+	 * 
+	 * @param monitor {@link Monitor} to be fullscreen on or {@code null} to go back
+	 *                to windowed mode
+	 */
+	public void setFullscreen(Monitor monitor) {
+		if (monitor == null) {
+			if (isFullscreen())
+				glfwSetWindowMonitor(handle, 0, savedX.get(), savedY.get(), savedWidth.get(), savedHeight.get(),
+						GLFW.GLFW_DONT_CARE);
+			return;
+		}
+
+		if (!isFullscreen()) {
+			glfwGetWindowSize(handle, savedWidth, savedHeight);
+			glfwGetWindowPos(handle, savedX, savedY);
+		}
+
+		glfwSetWindowMonitor(handle, monitor.getHandle(), 0, 0, monitor.getWidth(), monitor.getHeight(),
+				GLFW.GLFW_DONT_CARE);
+
+		updateViewports();
 	}
 
 	/**
@@ -496,6 +548,15 @@ public class Window {
 			};
 		else
 			Window.onLastWindowClosed = onLastWindowClosed;
+	}
+
+	/**
+	 * Initializes GLFW. <br />
+	 * Throws a RuntimeException if GLFW could not be initialized.
+	 */
+	public static void initGlfw() {
+		if (!glfwInit())
+			throw new RuntimeException("Couldn't initialize GLWF");
 	}
 
 }
