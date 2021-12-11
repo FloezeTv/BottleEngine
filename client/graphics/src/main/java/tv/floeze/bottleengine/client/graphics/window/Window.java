@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLUtil;
 
 import tv.floeze.bottleengine.client.graphics.io.ImageLoader;
 import tv.floeze.bottleengine.common.threads.Runner;
@@ -120,6 +121,11 @@ public class Window {
 	private static Runnable onLastWindowClosed = Runner.MAIN::stop;
 
 	/**
+	 * Set to true to print debug messages
+	 */
+	public static boolean DEBUG = false;
+
+	/**
 	 * The handle of this window
 	 */
 	private final long handle;
@@ -180,6 +186,9 @@ public class Window {
 		// for Mac OS X
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
+		if (DEBUG)
+			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+
 		handle = glfwCreateWindow(width, height, title, monitor > 0 ? monitor : NULL,
 				share != null ? share.handle : NULL);
 		updateViewports(width, height);
@@ -197,6 +206,9 @@ public class Window {
 			glfwSwapInterval(1);
 
 			GL.createCapabilities();
+
+			if (DEBUG)
+				GLUtil.setupDebugMessageCallback();
 
 			// Enable blending
 			glEnable(GL_BLEND);
