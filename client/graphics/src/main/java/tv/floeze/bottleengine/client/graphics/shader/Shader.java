@@ -1,10 +1,13 @@
 package tv.floeze.bottleengine.client.graphics.shader;
 
+import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL40.*;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.joml.Matrix4dc;
 import org.joml.Matrix4fc;
@@ -23,7 +26,62 @@ import tv.floeze.bottleengine.common.io.ResourceLoader;
  */
 public class Shader {
 
+	/**
+	 * Parts of a {@link Shader}
+	 * 
+	 * @author Floeze
+	 * 
+	 * @see Shader#Shader(Part...)
+	 *
+	 */
+	public static final class Part {
+		private final int type;
+		private final String path;
+
+		public Part(int type, String path) {
+			this.type = type;
+			this.path = path;
+		}
+
+	}
+
 	private final int program;
+
+	/**
+	 * Creates a new shader from multiple parts
+	 * 
+	 * @param parts parts of shader
+	 * @see Part
+	 */
+	public Shader(Part... parts) {
+		program = glCreateProgram();
+
+		// list of created shaders for deletion
+		List<Integer> glShaders = new ArrayList<>();
+
+		try {
+			for (Part part : parts) {
+				int shader = glCreateShader(part.type);
+				glShaders.add(shader);
+
+				glShaderSource(shader, ResourceLoader.loadTextFromResources(part.path));
+				glCompileShader(shader);
+				glAttachShader(program, shader);
+
+				if (glGetShaderi(shader, GL_COMPILE_STATUS) != GL_TRUE)
+					throw new ShaderException("Failed to compile shader " + part.path + " (" + part.type + ")",
+							glGetShaderInfoLog(shader));
+			}
+
+			glLinkProgram(program);
+			if (glGetProgrami(program, GL_LINK_STATUS) != GL_TRUE)
+				throw new ShaderException("Failed to link shader", glGetProgramInfoLog(program));
+
+		} finally {
+			for (int shader : glShaders)
+				glDeleteShader(shader);
+		}
+	}
 
 	/**
 	 * Creates a new shader
@@ -32,31 +90,7 @@ public class Shader {
 	 * @param fragment path to fragment shader
 	 */
 	public Shader(String vertex, String fragment) {
-		String vertexSource = ResourceLoader.loadTextFromResources(vertex);
-		String fragmentSource = ResourceLoader.loadTextFromResources(fragment);
-
-		int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, vertexSource);
-		glCompileShader(vertexShader);
-		if (glGetShaderi(vertexShader, GL_COMPILE_STATUS) != GL_TRUE)
-			throw new ShaderException("Failed to compile vertex shader " + vertex, glGetShaderInfoLog(vertexShader));
-
-		int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, fragmentSource);
-		glCompileShader(fragmentShader);
-		if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) != GL_TRUE)
-			throw new ShaderException("Failed to compile fragment shader " + fragment,
-					glGetShaderInfoLog(fragmentShader));
-
-		program = glCreateProgram();
-		glAttachShader(program, vertexShader);
-		glAttachShader(program, fragmentShader);
-		glLinkProgram(program);
-		if (glGetProgrami(program, GL_LINK_STATUS) != GL_TRUE)
-			throw new ShaderException("Failed to link shader", glGetProgramInfoLog(program));
-
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
+		this(new Part(GL_VERTEX_SHADER, vertex), new Part(GL_FRAGMENT_SHADER, fragment));
 	}
 
 	/**
