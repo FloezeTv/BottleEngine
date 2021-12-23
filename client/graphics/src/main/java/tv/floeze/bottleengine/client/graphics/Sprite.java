@@ -6,9 +6,12 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
+import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import tv.floeze.bottleengine.client.graphics.io.Texture;
@@ -21,17 +24,22 @@ import tv.floeze.bottleengine.common.threads.Runner;
  * @author Floeze
  *
  */
-public class Sprite extends Transformable implements Renderable {
+public class Sprite extends Transformable implements Renderable, Disposable {
 
 	/**
 	 * VAOs for the different Runners
 	 */
-	private static final Map<Runner, Integer> VAOs = new HashMap<>();
+	private static final Map<Runner, int[]> VAOs = new HashMap<>();
 
 	/**
-	 * Shaders for the different runners
+	 * {@link Shader}s for the different runners
 	 */
 	private static final Map<Runner, Shader> shaders = new HashMap<>();
+
+	/**
+	 * Active {@link Sprite} per Runner
+	 */
+	private static final Map<Runner, List<Sprite>> active = new HashMap<>();
 
 	/**
 	 * Vertices of the Sprite (for creating {@link #VAOs} in {@link #getVAO()})
@@ -66,6 +74,7 @@ public class Sprite extends Transformable implements Renderable {
 	 */
 	public Sprite(Texture texture) {
 		this.texture = texture;
+		register(this);
 		vao = getVAO();
 		shader = getShader();
 	}
@@ -89,6 +98,11 @@ public class Sprite extends Transformable implements Renderable {
 	public Sprite setTexture(Texture texture) {
 		this.texture = texture;
 		return this;
+	}
+
+	@Override
+	public void dispose() {
+		dispose(this);
 	}
 
 	/**
@@ -117,8 +131,8 @@ public class Sprite extends Transformable implements Renderable {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, INDICES, GL_STATIC_DRAW);
 
-			return VAO;
-		});
+			return new int[] { VAO, VBO, EBO };
+		})[0];
 	}
 
 	/**
@@ -130,6 +144,27 @@ public class Sprite extends Transformable implements Renderable {
 	private static Shader getShader() {
 		return shaders.computeIfAbsent(Runner.getCurrentRunner(),
 				k -> new Shader("bottleengine/shaders/sprite.vert", "bottleengine/shaders/sprite.frag"));
+	}
+
+	private static void register(Sprite sprite) {
+		active.computeIfAbsent(Runner.getCurrentRunner(), k -> new ArrayList<>()).add(sprite);
+	}
+
+	private static void dispose(Sprite sprite) {
+		List<Sprite> sprites = active.computeIfAbsent(Runner.getCurrentRunner(), k -> new ArrayList<>());
+		sprites.remove(sprite);
+		if (sprites.isEmpty()) {
+			int[] buffers = VAOs.remove(Runner.getCurrentRunner());
+			if (buffers != null) {
+				glDeleteVertexArrays(buffers[0]);
+				glDeleteBuffers(buffers[1]);
+				glDeleteBuffers(buffers[2]);
+			}
+			Shader shader = shaders.remove(Runner.getCurrentRunner());
+			if (shader != null) {
+				shader.dispose();
+			}
+		}
 	}
 
 }
