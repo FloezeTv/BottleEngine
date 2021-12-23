@@ -2,7 +2,10 @@ package tv.floeze.bottleengine.client.graphics.io;
 
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
+
+import tv.floeze.bottleengine.client.graphics.Disposable;
 
 /**
  * A Texture.<br />
@@ -11,7 +14,7 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
  * @author Floeze
  *
  */
-public class Texture {
+public class Texture implements Disposable {
 
 	private final int handle;
 
@@ -34,6 +37,11 @@ public class Texture {
 	 */
 	public void bind() {
 		glBindTexture(GL_TEXTURE_2D, handle);
+	}
+
+	@Override
+	public void dispose() {
+		glDeleteTextures(handle);
 	}
 
 }
