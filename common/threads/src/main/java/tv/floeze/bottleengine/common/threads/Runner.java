@@ -111,6 +111,12 @@ public final class Runner implements Runnable {
 	 *         as the {@link Runnable} has been run
 	 */
 	public CompletableFuture<Void> run(Runnable runnable) {
+		// if called from current runner, run immediately
+		if (getCurrentRunner() == this) {
+			runnable.run();
+			return CompletableFuture.completedFuture(null);
+		}
+
 		CompletableFuture<Void> future = new CompletableFuture<>();
 		runnablesLock.lock();
 		runnables.add(() -> {
@@ -130,6 +136,11 @@ public final class Runner implements Runnable {
 	 *         {@link Supplier} as soon as the {@link Supplier} has been run
 	 */
 	public <T> CompletableFuture<T> run(Supplier<T> supplier) {
+		// if called from current runner, run immediately
+		if (getCurrentRunner() == this) {
+			return CompletableFuture.completedFuture(supplier.get());
+		}
+
 		CompletableFuture<T> future = new CompletableFuture<>();
 		runnablesLock.lock();
 		runnables.add(() -> {
