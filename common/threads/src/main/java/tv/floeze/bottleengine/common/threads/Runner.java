@@ -43,19 +43,19 @@ public final class Runner implements Runnable {
 	 * @author Floeze
 	 *
 	 */
-	private static enum State {
+	private enum State {
 		IDLE, RUNNING, STOPPING;
 	}
 
 	/**
 	 * the current state this {@link Runner} is in
 	 */
-	private final AtomicReference<State> state = new AtomicReference<State>(State.IDLE);
+	private final AtomicReference<State> state = new AtomicReference<>(State.IDLE);
 
 	/**
 	 * All the tasks that should be run once
 	 */
-	private final Queue<Runnable> runnables = new LinkedList<Runnable>();
+	private final Queue<Runnable> runnables = new LinkedList<>();
 
 	/**
 	 * The lock for {@link #runnables}
@@ -65,7 +65,7 @@ public final class Runner implements Runnable {
 	/**
 	 * All the tasks that should be repeated
 	 */
-	private final List<Runnable> repeatables = new ArrayList<Runnable>();
+	private final List<Runnable> repeatables = new ArrayList<>();
 
 	/**
 	 * The lock for {@link #repeatables}
@@ -100,16 +100,8 @@ public final class Runner implements Runnable {
 	 * Creates a new {@link Runner}
 	 */
 	public Runner() {
+		// Nothing to initialize
 	}
-
-//	/**
-//	 * Creates a new {@link Runner}
-//	 * 
-//	 * @param onStop stop handler to execute when this thread is stopped
-//	 */
-//	protected Runner(Runnable onStop) {
-//		this.onStop = onStop;
-//	}
 
 	/**
 	 * Runs the {@link Runnable} once as soon as possible
@@ -119,7 +111,7 @@ public final class Runner implements Runnable {
 	 *         as the {@link Runnable} has been run
 	 */
 	public CompletableFuture<Void> run(Runnable runnable) {
-		CompletableFuture<Void> future = new CompletableFuture<Void>();
+		CompletableFuture<Void> future = new CompletableFuture<>();
 		runnablesLock.lock();
 		runnables.add(() -> {
 			runnable.run();
@@ -138,7 +130,7 @@ public final class Runner implements Runnable {
 	 *         {@link Supplier} as soon as the {@link Supplier} has been run
 	 */
 	public <T> CompletableFuture<T> run(Supplier<T> supplier) {
-		CompletableFuture<T> future = new CompletableFuture<T>();
+		CompletableFuture<T> future = new CompletableFuture<>();
 		runnablesLock.lock();
 		runnables.add(() -> {
 			T result = supplier.get();
@@ -194,7 +186,7 @@ public final class Runner implements Runnable {
 		state.set(State.IDLE);
 		onFinish.run();
 
-		currentRunner.set(null);
+		currentRunner.remove();
 	}
 
 	private void runRunnables() {
@@ -249,16 +241,6 @@ public final class Runner implements Runnable {
 			};
 		}
 	}
-
-//	/**
-//	 * Sets the stop handler, but only if this Runner is currently idle.
-//	 * 
-//	 * @param onStop the new stop handler
-//	 */
-//	public void setStopHandler(Runnable onStop) {
-//		if (state.get().equals(State.IDLE))
-//			this.onStop = onStop;
-//	}
 
 	/**
 	 * Executes this runner in a new {@link Thread}
