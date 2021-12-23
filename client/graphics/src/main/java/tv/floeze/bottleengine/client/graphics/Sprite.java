@@ -11,11 +11,6 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.joml.AxisAngle4d;
-import org.joml.Matrix4d;
-import org.joml.Vector2d;
-import org.joml.Vector3d;
-
 import tv.floeze.bottleengine.client.graphics.io.Texture;
 import tv.floeze.bottleengine.client.graphics.shader.Shader;
 import tv.floeze.bottleengine.common.threads.Runner;
@@ -26,7 +21,7 @@ import tv.floeze.bottleengine.common.threads.Runner;
  * @author Floeze
  *
  */
-public class Sprite implements Renderable {
+public class Sprite extends Transformable implements Renderable {
 
 	/**
 	 * VAOs for the different Runners
@@ -61,15 +56,6 @@ public class Sprite implements Renderable {
 	 */
 	private Texture texture;
 
-	/**
-	 * Mode matrix
-	 */
-	private Matrix4d model;
-
-	private Vector3d position = new Vector3d();
-	private Vector2d scale = new Vector2d(1);
-	private AxisAngle4d rotation = new AxisAngle4d();
-
 	private final int vao;
 	private final Shader shader;
 
@@ -80,8 +66,6 @@ public class Sprite implements Renderable {
 	 */
 	public Sprite(Texture texture) {
 		this.texture = texture;
-		model = new Matrix4d();
-		updateMatrix();
 		vao = getVAO();
 		shader = getShader();
 	}
@@ -91,49 +75,11 @@ public class Sprite implements Renderable {
 		texture.bind(GL_TEXTURE0);
 
 		shader.use();
-		shader.set("model", model);
+		shader.set("model", getTransform());
 		shader.set("texture", 0);
 
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, INDICES.length, GL_UNSIGNED_INT, 0);
-	}
-
-	/**
-	 * Updates the matrix. Call this after modifying the vectors. <br />
-	 * Using the setters calls this automatically.
-	 */
-	public void updateMatrix() {
-		model = new Matrix4d().translate(position).rotate(rotation).scale(scale.x(), scale.y(), 0);
-	}
-
-	public Vector3d getPosition() {
-		return position;
-	}
-
-	public Sprite setPosition(Vector3d position) {
-		this.position = position;
-		updateMatrix();
-		return this;
-	}
-
-	public Vector2d getScale() {
-		return scale;
-	}
-
-	public Sprite setScale(Vector2d scale) {
-		this.scale = scale;
-		updateMatrix();
-		return this;
-	}
-
-	public AxisAngle4d getRotation() {
-		return rotation;
-	}
-
-	public Sprite setRotation(AxisAngle4d rotation) {
-		this.rotation = rotation;
-		updateMatrix();
-		return this;
 	}
 
 	public Texture getTexture() {
