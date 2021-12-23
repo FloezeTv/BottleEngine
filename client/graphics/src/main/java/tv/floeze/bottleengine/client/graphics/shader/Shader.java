@@ -108,12 +108,24 @@ public class Shader {
 		glUniform1i(getUniformLocation(name), i);
 	}
 
+	public void set(String name, int[] i) {
+		glUniform1iv(getUniformLocation(name), i);
+	}
+
 	public void set(String name, float f) {
 		glUniform1f(getUniformLocation(name), f);
 	}
 
+	public void set(String name, float[] f) {
+		glUniform1fv(getUniformLocation(name), f);
+	}
+
 	public void set(String name, double d) {
 		glUniform1d(getUniformLocation(name), d);
+	}
+
+	public void set(String name, double[] d) {
+		glUniform1dv(getUniformLocation(name), d);
 	}
 
 	public void set(String name, Vector2fc vector) {
