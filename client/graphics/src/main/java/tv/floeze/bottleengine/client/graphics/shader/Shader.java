@@ -16,6 +16,7 @@ import org.joml.Vector2fc;
 import org.joml.Vector3dc;
 import org.joml.Vector3fc;
 
+import tv.floeze.bottleengine.client.graphics.Disposable;
 import tv.floeze.bottleengine.common.io.ResourceLoader;
 
 /**
@@ -24,7 +25,7 @@ import tv.floeze.bottleengine.common.io.ResourceLoader;
  * @author Floeze
  *
  */
-public class Shader {
+public class Shader implements Disposable {
 
 	/**
 	 * Parts of a {@link Shader}
@@ -170,6 +171,11 @@ public class Shader {
 
 	private int getUniformLocation(String name) {
 		return glGetUniformLocation(program, name);
+	}
+
+	@Override
+	public void dispose() {
+		glDeleteProgram(program);
 	}
 
 	/**
