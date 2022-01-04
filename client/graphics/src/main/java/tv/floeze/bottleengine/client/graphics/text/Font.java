@@ -1,4 +1,4 @@
-package tv.floeze.bottleengine.client.text;
+package tv.floeze.bottleengine.client.graphics.text;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.glTexImage3D;
