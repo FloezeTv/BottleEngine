@@ -5,6 +5,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import java.awt.Color;
+import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +18,10 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLUtil;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import tv.floeze.bottleengine.client.graphics.ClickListener;
 import tv.floeze.bottleengine.client.graphics.io.ImageLoader;
 import tv.floeze.bottleengine.common.threads.Runner;
 
@@ -157,6 +160,13 @@ public class Window {
 	 */
 	private Supplier<Boolean> closeHandler = () -> true;
 
+	/**
+	 * Gets called when the window is clicked on
+	 * 
+	 * @see #setClickListener(ClickListener)
+	 */
+	private ClickListener clickListener = ClickListener.NOTHING;
+
 	static {
 		Runner.MAIN.repeat(GLFW::glfwPollEvents);
 	}
@@ -205,6 +215,18 @@ public class Window {
 		// set callbacks
 		glfwSetFramebufferSizeCallback(handle, (window, w, h) -> execute(() -> updateViewports(w, h)));
 		glfwSetWindowCloseCallback(handle, window -> glfwSetWindowShouldClose(window, closeHandler.get()));
+		glfwSetMouseButtonCallback(handle, (window, button, action, mods) -> {
+			try (MemoryStack stack = MemoryStack.stackPush()) {
+				DoubleBuffer x = stack.doubles(1);
+				DoubleBuffer y = stack.doubles(1);
+				glfwGetCursorPos(window, x, y);
+
+				clickListener.onClick(button, action, mods, x.get(0), y.get(0));
+
+				for (Viewport viewport : viewports)
+					viewport.onClick(button, action, mods, x.get(0), y.get(0));
+			}
+		});
 
 		runner.run(() -> {
 			glfwMakeContextCurrent(handle);
@@ -349,6 +371,15 @@ public class Window {
 	 */
 	public void setCloseHandler(Supplier<Boolean> closeHandler) {
 		this.closeHandler = closeHandler;
+	}
+
+	/**
+	 * Sets a listener to be executed when this window is clicked on
+	 * 
+	 * @param clickListener the listener to call when this window gets clicked on
+	 */
+	public void setClickListener(ClickListener clickListener) {
+		this.clickListener = clickListener != null ? clickListener : ClickListener.NOTHING;
 	}
 
 	/**

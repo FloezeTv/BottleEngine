@@ -19,4 +19,10 @@ public class Camera2D extends Camera {
 		projectionMatrix = new Matrix4f().ortho2D(0, width, height, 0);
 	}
 
+	@Override
+	public void onClick(int button, int action, int modifiers, double x, double y) {
+		// TODO: handle the clicks
+		System.out.println("Camera clicked on (" + x + ", " + y + ")");
+	}
+
 }

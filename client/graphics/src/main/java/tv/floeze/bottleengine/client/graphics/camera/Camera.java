@@ -8,13 +8,19 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
+import tv.floeze.bottleengine.client.graphics.ClickListener;
+
 /**
- * A camera to render the scene from.
+ * A camera to render the scene from. <br />
+ * 
+ * {@link #onClick(int, int, int, double, double)} expects the coordinates in
+ * the cameras coordinate system (0 - {@link #getWidth()}, 0 -
+ * {@link #getHeight()}).
  * 
  * @author Floeze
  *
  */
-public abstract class Camera {
+public abstract class Camera implements ClickListener {
 
 	private final int UBO;
 

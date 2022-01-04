@@ -2,6 +2,7 @@ package tv.floeze.bottleengine.client.graphics.window;
 
 import static org.lwjgl.opengl.GL11.glViewport;
 
+import tv.floeze.bottleengine.client.graphics.ClickListener;
 import tv.floeze.bottleengine.client.graphics.Renderable;
 import tv.floeze.bottleengine.client.graphics.camera.Camera;
 
@@ -11,7 +12,7 @@ import tv.floeze.bottleengine.client.graphics.camera.Camera;
  * @author Floeze
  *
  */
-public class Viewport implements Renderable {
+public class Viewport implements Renderable, ClickListener {
 
 	/**
 	 * Percentage where the {@link Viewport} should start/end in percent of the
@@ -208,6 +209,21 @@ public class Viewport implements Renderable {
 		camera.setMatrices();
 
 		content.render();
+	}
+
+	/**
+	 * Passes the click event to the camera and converts the coordinates to camera
+	 * coordinates
+	 */
+	@Override
+	public void onClick(int button, int action, int modifiers, double x, double y) {
+		x = (x - viewportSize.x) / viewportSize.width * viewportSize.cameraWidth;
+		y = (y - viewportSize.y) / viewportSize.height * viewportSize.cameraHeight;
+
+		if (x < 0 || x > viewportSize.cameraWidth || y < 0 || y > viewportSize.cameraHeight)
+			return;
+
+		camera.onClick(button, action, modifiers, x, y);
 	}
 
 }
