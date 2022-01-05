@@ -1,7 +1,7 @@
 #version 330 core
 
 in vec2 texCoord;
-in flat int texIndex;
+flat in int texIndex;
 
 out vec4 fragColor;
 

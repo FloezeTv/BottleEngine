@@ -5,7 +5,7 @@ layout (location = 1) in vec2 tex;
 layout (location = 2) in int texIdx;
 
 out vec2 texCoord;
-out int texIndex;
+flat out int texIndex;
 
 layout (std140) uniform Camera {
 	mat4 view;
