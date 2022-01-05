@@ -7,15 +7,13 @@ layout (location = 2) in int texIdx;
 out vec2 texCoord;
 flat out int texIndex;
 
-layout (std140) uniform Camera {
-	mat4 view;
-	mat4 projection;
-};
 uniform mat4 model;
+
+void set_position(mat4 model, vec3 position);
 
 void main() {
 	texCoord = tex;
 	texIndex = texIdx;
 
-	gl_Position = projection * view * model * vec4(pos, 0.0, 1.0);
+	set_position(model, vec3(pos, 0.0));
 }

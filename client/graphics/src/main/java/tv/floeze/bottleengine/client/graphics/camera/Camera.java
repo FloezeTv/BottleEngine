@@ -9,6 +9,7 @@ import org.joml.Matrix4f;
 
 import tv.floeze.bottleengine.client.graphics.ClickListener;
 import tv.floeze.bottleengine.client.graphics.Transformable;
+import tv.floeze.bottleengine.client.graphics.shader.Shader;
 
 /**
  * A camera to render the scene from. <br />
@@ -26,6 +27,10 @@ import tv.floeze.bottleengine.client.graphics.Transformable;
  * };
  * </pre>
  * 
+ * <br />
+ *
+ * It is however recommended to use the helper functions present when using the
+ * {@link Shader}.
  * 
  * @author Floeze
  *

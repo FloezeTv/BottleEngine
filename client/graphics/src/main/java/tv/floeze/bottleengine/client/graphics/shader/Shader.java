@@ -9,18 +9,28 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joml.Matrix4dc;
-import org.joml.Matrix4fc;
-import org.joml.Vector2dc;
-import org.joml.Vector2fc;
-import org.joml.Vector3dc;
-import org.joml.Vector3fc;
+import org.joml.*;
+import org.lwjgl.opengl.GL20;
 
 import tv.floeze.bottleengine.client.graphics.Disposable;
 import tv.floeze.bottleengine.common.io.ResourceLoader;
+import tv.floeze.bottleengine.common.threads.RunnerLocal;
 
 /**
- * An OpenGL Shader-Program
+ * An OpenGL Shader-Program.<br />
+ * 
+ * By default, this includes the following helper-methods for every shader:
+ * 
+ * <ul>
+ * <li>Camera
+ * <ul>
+ * <li>{@code void set_position(mat4 model, vec3 position);} Sets the
+ * gl_Position to the result of calculate_position</li>
+ * <li>{@code vec4 calculate_position(mat4 model, vec3 position);} Calculates
+ * the vec4 for OpenGL including the camera</li>
+ * </ul>
+ * </li>
+ * </ul>
  * 
  * @author Floeze
  *
@@ -46,6 +56,25 @@ public class Shader implements Disposable {
 
 	}
 
+	/**
+	 * The path of the common shader for camera operations
+	 */
+	private static final String CAMERA_COMMON_PATH = "bottleengine/shaders/camera.common.vert";
+
+	/**
+	 * The common shader for camera operations
+	 */
+	private static final RunnerLocal<Integer> cameraCommon = new RunnerLocal<>(() -> {
+		int shader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(shader, ResourceLoader.loadTextFromResources(CAMERA_COMMON_PATH));
+		glCompileShader(shader);
+
+		if (glGetShaderi(shader, GL_COMPILE_STATUS) != GL_TRUE)
+			throw new ShaderException("Failed to compile common camera shader", glGetShaderInfoLog(shader));
+
+		return shader;
+	}, GL20::glDeleteShader);
+
 	private final int program;
 
 	/**
@@ -61,6 +90,8 @@ public class Shader implements Disposable {
 		List<Integer> glShaders = new ArrayList<>();
 
 		try {
+			glAttachShader(program, cameraCommon.get(this));
+
 			for (Part part : parts) {
 				int shader = glCreateShader(part.type);
 				glShaders.add(shader);
