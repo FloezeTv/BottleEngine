@@ -1,7 +1,5 @@
 package tv.floeze.bottleengine.client.graphics.camera;
 
-import org.joml.Matrix4f;
-
 /**
  * A camera to render a 2D view.
  * 
@@ -16,7 +14,7 @@ public class Camera2D extends Camera {
 
 	@Override
 	public void updateProjection(int width, int height) {
-		projectionMatrix = new Matrix4f().ortho2D(-width / 2f, width / 2f, height / 2f, -height / 2f);
+		projectionMatrix.setOrtho2D(-width / 2f, width / 2f, height / 2f, -height / 2f);
 	}
 
 	@Override
