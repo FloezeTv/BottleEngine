@@ -13,7 +13,15 @@ import org.joml.Vector3d;
  */
 public abstract class Transformable {
 
-	private final Matrix4d model = new Matrix4d();
+	/**
+	 * Two model matrices:<br />
+	 * {@code model[currentModelIndex]} is the model to read.<br />
+	 * {@code model[getUnusedModelIndex()]} is the model to write to.<br />
+	 * After writing, set {@link #currentModelIndex} to
+	 * {@link #getUnusedModelIndex()}
+	 */
+	private final Matrix4d[] model = { new Matrix4d(), new Matrix4d() };
+	private int currentModelIndex = 0;
 	private final Vector3d position = new Vector3d();
 	private final Vector3d scale = new Vector3d(1);
 	private final AxisAngle4d rotation = new AxisAngle4d();
@@ -26,7 +34,7 @@ public abstract class Transformable {
 	 * @return The transform matrix of this object.
 	 */
 	public Matrix4d getTransform() {
-		return model;
+		return model[currentModelIndex];
 	}
 
 	/**
@@ -65,7 +73,18 @@ public abstract class Transformable {
 	 * This method has to be called for the changes to take effect.
 	 */
 	public void updateTransform() {
-		model.identity().translate(position).rotate(rotation).scale(scale);
+		int edit = getUnusedModelIndex();
+		model[edit].identity().translate(position).rotate(rotation).scale(scale);
+		currentModelIndex = edit;
+	}
+
+	/**
+	 * Gets the index of the currently unused model
+	 * 
+	 * @return a index for {@link #model} that is not {@link #currentModelIndex}
+	 */
+	private int getUnusedModelIndex() {
+		return (currentModelIndex + 1) % model.length;
 	}
 
 }
