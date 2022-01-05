@@ -16,7 +16,7 @@ public class Camera2D extends Camera {
 
 	@Override
 	public void updateProjection(int width, int height) {
-		projectionMatrix = new Matrix4f().ortho2D(0, width, height, 0);
+		projectionMatrix = new Matrix4f().ortho2D(-width / 2f, width / 2f, height / 2f, -height / 2f);
 	}
 
 	@Override

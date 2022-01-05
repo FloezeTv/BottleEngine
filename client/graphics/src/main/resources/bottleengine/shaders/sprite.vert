@@ -6,8 +6,8 @@ layout (location = 1) in vec2 tex;
 out vec2 texCoord;
 
 layout (std140) uniform Camera {
-	mat4 projection;
 	mat4 view;
+	mat4 projection;
 };
 uniform mat4 model;
 

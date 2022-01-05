@@ -146,12 +146,21 @@ public class Viewport implements Renderable, ClickListener {
 	}
 
 	/**
-	 * Changes the {@link Camera} of this viewport
+	 * Changes the {@link Camera} of this {@link Viewport}
 	 * 
-	 * @param camera the new {@link Camera} of this viewport
+	 * @param camera the new {@link Camera} of this {@link Viewport}
 	 */
 	public void setCamera(Camera camera) {
 		this.camera = camera;
+	}
+
+	/**
+	 * Gets the {@link Camera} of this {@link Viewport}
+	 * 
+	 * @return the {@link Camera} of this {@link Viewport}
+	 */
+	public Camera getCamera() {
+		return camera;
 	}
 
 	public void setContent(Renderable renderable) {

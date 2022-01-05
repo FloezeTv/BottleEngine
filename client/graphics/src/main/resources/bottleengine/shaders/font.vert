@@ -8,8 +8,8 @@ out vec2 texCoord;
 out int texIndex;
 
 layout (std140) uniform Camera {
-	mat4 projection;
 	mat4 view;
+	mat4 projection;
 };
 uniform mat4 model;
 

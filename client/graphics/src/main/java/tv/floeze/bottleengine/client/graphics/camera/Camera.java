@@ -1,35 +1,47 @@
 package tv.floeze.bottleengine.client.graphics.camera;
 
 import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL30.glBindBufferRange;
+import static org.lwjgl.opengl.GL30.glBindBufferBase;
 import static org.lwjgl.opengl.GL31.GL_UNIFORM_BUFFER;
 
+import org.joml.Matrix4d;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
 
 import tv.floeze.bottleengine.client.graphics.ClickListener;
+import tv.floeze.bottleengine.client.graphics.Transformable;
 
 /**
  * A camera to render the scene from. <br />
  * 
  * {@link #onClick(int, int, int, double, double)} expects the coordinates in
  * the cameras coordinate system (0 - {@link #getWidth()}, 0 -
- * {@link #getHeight()}).
+ * {@link #getHeight()}).<br />
+ * 
+ * This uses uniform buffer at index 0 for view and projection matrix:
+ * 
+ * <pre>
+ * layout (std140) uniform Camera {
+ *     mat4 view;
+ *     mat4 projection;
+ * };
+ * </pre>
+ * 
  * 
  * @author Floeze
  *
  */
-public abstract class Camera implements ClickListener {
+public abstract class Camera extends Transformable implements ClickListener {
 
 	private final int UBO;
 
 	protected Matrix4f projectionMatrix = new Matrix4f();
-	protected Matrix4f viewMatrix = new Matrix4f();
-
-	private Vector3f position = new Vector3f();
 
 	private int width, height;
+
+	/**
+	 * Matrix for storing the inverted transformation matrix
+	 */
+	private final Matrix4d viewMatrix = new Matrix4d();
 
 	/**
 	 * Creates a new camera with the specified width and height.
@@ -45,11 +57,7 @@ public abstract class Camera implements ClickListener {
 		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 		// allocate buffer for 2 matrices with 4 * 4 floats
 		glBufferData(GL_UNIFORM_BUFFER, (2 * (4 * 4)) * Float.BYTES, GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBO, 0, (2 * (4 * 4)) * Float.BYTES);
-
-		updateView();
 		updateProjection(width, height);
 	}
 
@@ -72,25 +80,6 @@ public abstract class Camera implements ClickListener {
 	}
 
 	/**
-	 * Sets the position of the camera and updates the matrix.
-	 * 
-	 * @param position the new position of the camera
-	 */
-	public void setPosition(Vector3f position) {
-		this.position = position;
-		updateView();
-	}
-
-	/**
-	 * Gets the current position of the camera as a read-only {@link Vector3fc}.
-	 * 
-	 * @return the read-only position of the camera
-	 */
-	public Vector3fc getPosition() {
-		return position;
-	}
-
-	/**
 	 * Sets the matrices. This does not update the matrices.
 	 */
 	public void setMatrices() {
@@ -99,14 +88,23 @@ public abstract class Camera implements ClickListener {
 		glBufferSubData(GL_UNIFORM_BUFFER, (0 * (4 * 4)) * Float.BYTES, viewMatrix.get(new float[4 * 4]));
 		glBufferSubData(GL_UNIFORM_BUFFER, (1 * (4 * 4)) * Float.BYTES, projectionMatrix.get(new float[4 * 4]));
 
-		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBO);
 	}
 
 	/**
-	 * Updates the view matrix
+	 * Updates the view matrix manually.<br />
+	 * 
+	 * This only needs to be called if the transformation was changed without
+	 * calling {@link #updateTransform()}.
 	 */
 	public void updateView() {
-		viewMatrix = new Matrix4f().translate(position);
+		getTransform().invert(viewMatrix);
+	}
+
+	@Override
+	public void updateTransform() {
+		super.updateTransform();
+		updateView();
 	}
 
 	/**
