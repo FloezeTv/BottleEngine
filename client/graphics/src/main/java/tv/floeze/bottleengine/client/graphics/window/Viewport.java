@@ -31,9 +31,11 @@ public class Viewport implements Renderable, ClickListener {
 	private boolean visible = true;
 
 	/**
-	 * The way the content fits this viewport
+	 * The way the content fits this viewport. <br />
+	 * 
+	 * Default is {@link AspectMode#NONE}.
 	 */
-	private AspectMode aspectMode = AspectMode.SCALE;
+	private AspectMode aspectMode = AspectMode.NONE;
 
 	/**
 	 * The {@link Camera} of this {@link Viewport}
@@ -186,6 +188,15 @@ public class Viewport implements Renderable, ClickListener {
 	 */
 	public boolean isVisible() {
 		return visible;
+	}
+
+	/**
+	 * Sets the {@link AspectMode} to use
+	 * 
+	 * @param aspectMode {@link AspectMode} to use
+	 */
+	public void setAspectMode(AspectMode aspectMode) {
+		this.aspectMode = aspectMode;
 	}
 
 	/**

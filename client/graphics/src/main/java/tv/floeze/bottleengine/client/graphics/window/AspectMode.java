@@ -13,12 +13,78 @@ import tv.floeze.bottleengine.client.graphics.camera.Camera;
 public interface AspectMode {
 
 	/**
-	 * Scales the content to fit the viewport stretching the content if necessary
+	 * Does not modify the viewport size.
+	 * 
+	 * This will add borders around the content or draw the content outside the
+	 * viewport if it does not match the camera output size
 	 */
-	public static final AspectMode SCALE = //
-			(viewportX, viewportY, viewportWidth, viewportHeight, cameraWidth, cameraHeight) -> {
-				return new Size(viewportX, viewportY, viewportWidth, viewportHeight, cameraWidth, cameraHeight);
-			};
+	public static final AspectMode NONE = //
+			(viewportX, viewportY, viewportWidth, viewportHeight, cameraWidth, cameraHeight) -> new Size(
+					viewportX + (viewportWidth - cameraWidth) / 2, viewportY + (viewportHeight - cameraHeight) / 2,
+					cameraWidth, cameraHeight, cameraWidth, cameraHeight);
+
+	/**
+	 * Stretches the content to fit the viewport. This will distort the content if
+	 * the aspect ratio is not the same.
+	 */
+	public static final AspectMode STRETCH = Size::new;
+
+	/**
+	 * Scales the content to fill the viewport while keeping the aspect ratio. This
+	 * will cut off parts of the content if the aspect ratio is not the same.
+	 */
+	public static final AspectMode SCALE = (viewportX, viewportY, viewportWidth, viewportHeight, cameraWidth,
+			cameraHeight) -> {
+		double scale = Math.max(viewportWidth / (double) cameraWidth, viewportHeight / (double) cameraHeight);
+		int width = (int) (scale * cameraWidth);
+		int height = (int) (scale * cameraHeight);
+		return new Size(viewportX + (viewportWidth - width) / 2, viewportY + (viewportHeight - height) / 2, width,
+				height, cameraWidth, cameraHeight);
+	};
+
+	/**
+	 * Scales the content to keep the whole content on the viewport while also
+	 * keeping the aspect ratio of the content. This will put empty areas at the
+	 * side of the viewport if the aspect ratio is not the same.
+	 */
+	public static final AspectMode KEEP = (viewportX, viewportY, viewportWidth, viewportHeight, cameraWidth,
+			cameraHeight) -> {
+		double scale = Math.min(viewportWidth / (double) cameraWidth, viewportHeight / (double) cameraHeight);
+		int width = (int) (scale * cameraWidth);
+		int height = (int) (scale * cameraHeight);
+		return new Size(viewportX + (viewportWidth - width) / 2, viewportY + (viewportHeight - height) / 2, width,
+				height, cameraWidth, cameraHeight);
+	};
+
+	/**
+	 * Scales the content to fit the width of the viewport while also keeping the
+	 * aspect ratio of the content. This will put empty areas or cut off parts of
+	 * the content at the top/bottom of the viewport if the aspect ratio is not the
+	 * same.
+	 */
+	public static final AspectMode KEEP_WIDTH = (viewportX, viewportY, viewportWidth, viewportHeight, cameraWidth,
+			cameraHeight) -> {
+		double scale = viewportWidth / (double) cameraWidth;
+		int width = (int) (scale * cameraWidth);
+		int height = (int) (scale * cameraHeight);
+		return new Size(viewportX + (viewportWidth - width) / 2, viewportY + (viewportHeight - height) / 2, width,
+				height, cameraWidth, cameraHeight);
+	};
+
+	/**
+	 * Scales the content to fit the height of the viewport while also keeping the
+	 * aspect ratio of the content. This will put empty areas or cut off parts of
+	 * the content at the left/right of the viewport if the aspect ratio is not the
+	 * same.
+	 */
+	public static final AspectMode KEEP_HEIGHT = (viewportX, viewportY, viewportWidth, viewportHeight, cameraWidth,
+			cameraHeight) -> {
+		double scale = viewportHeight / (double) cameraHeight;
+		int width = (int) (scale * cameraWidth);
+		int height = (int) (scale * cameraHeight);
+		return new Size(viewportX + (viewportWidth - width) / 2, viewportY + (viewportHeight - height) / 2, width,
+				height, cameraWidth, cameraHeight);
+	};
 
 	/**
 	 * Size returned by {@link AspectMode#getSize(int, int, int, int, int, int)}
