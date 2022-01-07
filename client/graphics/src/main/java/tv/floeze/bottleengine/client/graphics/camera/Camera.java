@@ -4,12 +4,17 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.glBindBufferBase;
 import static org.lwjgl.opengl.GL31.GL_UNIFORM_BUFFER;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joml.Matrix4d;
-import org.joml.Matrix4f;
+import org.joml.Vector3d;
 
 import tv.floeze.bottleengine.client.graphics.ClickListener;
+import tv.floeze.bottleengine.client.graphics.Clickable;
 import tv.floeze.bottleengine.client.graphics.Transformable;
 import tv.floeze.bottleengine.client.graphics.shader.Shader;
+import tv.floeze.bottleengine.client.graphics.window.Viewport;
 
 /**
  * A camera to render the scene from. <br />
@@ -39,9 +44,11 @@ public abstract class Camera extends Transformable implements ClickListener {
 
 	private final int UBO;
 
-	protected Matrix4f projectionMatrix = new Matrix4f();
+	protected Matrix4d projectionMatrix = new Matrix4d();
 
 	private int width, height;
+
+	private final List<Clickable> clickables = new ArrayList<>();
 
 	/**
 	 * Matrix for storing the inverted transformation matrix
@@ -110,6 +117,65 @@ public abstract class Camera extends Transformable implements ClickListener {
 	public void updateTransform() {
 		super.updateTransform();
 		updateView();
+	}
+
+	/**
+	 * Adds a {@link Clickable} to call when the {@link Viewport} of this
+	 * {@link Camera} is called
+	 * 
+	 * @param clickable {@link Clickable} to call
+	 */
+	public void addClickable(Clickable clickable) {
+		if (!clickables.contains(clickable))
+			clickables.add(clickable);
+	}
+
+	/**
+	 * Removes a previously added {@link Clickable}
+	 * 
+	 * @param clickable {@link Clickable} to remove
+	 * 
+	 * @see #addClickable(Clickable)
+	 */
+	public void removeClickable(Clickable clickable) {
+		clickables.remove(clickable);
+	}
+
+	/**
+	 * Maps a value from a range to another range
+	 * 
+	 * @param value   value to map
+	 * @param fromMin input range lower bound
+	 * @param fromMax input range upper bound
+	 * @param toMin   output range lower bound
+	 * @param toMax   output range upper bound
+	 * @return the mapped value
+	 */
+	private static double mapToRange(double value, double fromMin, double fromMax, double toMin, double toMax) {
+		return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
+	}
+
+	@Override
+	public void onClick(int button, int action, int modifiers, double x, double y) {
+		Matrix4d projInv = projectionMatrix.invert(new Matrix4d());
+		Matrix4d viewInv = getTransform(); // view is inverted transform
+
+		x = mapToRange(x, 0, getWidth(), -1, 1);
+		y = mapToRange(y, 0, getHeight(), -1, 1);
+
+		Vector3d from = new Vector3d(0, 0, -1);
+		Vector3d to = new Vector3d(x, y, 0);
+
+		from.mulPosition(projInv);
+		to.mulPosition(projInv);
+
+		from.mulPosition(viewInv);
+		to.mulPosition(viewInv);
+
+		Clickable.Ray ray = new Clickable.Ray(from, to.sub(from));
+
+		for (Clickable c : clickables)
+			c.click(ray);
 	}
 
 	/**

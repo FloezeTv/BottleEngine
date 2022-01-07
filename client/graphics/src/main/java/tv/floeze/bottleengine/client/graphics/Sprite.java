@@ -19,7 +19,7 @@ import tv.floeze.bottleengine.common.threads.RunnerLocal;
  * @author Floeze
  *
  */
-public class Sprite extends Transformable implements Renderable, Disposable {
+public class Sprite extends ClickableTransformableRectangle implements Renderable, Disposable {
 
 	/**
 	 * Vertices of the Sprite (for creating {@link #VAOs} in {@link #getVAO()})
@@ -114,6 +114,11 @@ public class Sprite extends Transformable implements Renderable, Disposable {
 		shaders.abandon(this);
 		buffers.abandon(this);
 		texture.dispose();
+	}
+
+	@Override
+	protected Rectangle getBounds() {
+		return new Rectangle(-0.5, -0.5, 1, 1);
 	}
 
 }
