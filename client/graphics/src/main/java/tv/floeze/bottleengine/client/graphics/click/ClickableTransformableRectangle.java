@@ -1,5 +1,9 @@
 package tv.floeze.bottleengine.client.graphics.click;
 
+import java.util.List;
+
+import java.util.ArrayList;
+
 import org.joml.Vector3d;
 
 /**
@@ -11,7 +15,7 @@ import org.joml.Vector3d;
  */
 public abstract class ClickableTransformableRectangle extends ClickableTransformable {
 
-	private Clickable2D clickable;
+	private final List<Clickable2D> clickables = new ArrayList<>();
 
 	/**
 	 * A {@link Rectangle} that represents the bounds of an object.
@@ -39,22 +43,27 @@ public abstract class ClickableTransformableRectangle extends ClickableTransform
 	protected abstract Rectangle getBounds();
 
 	/**
-	 * Sets the listener to call when this object is clicked.
+	 * Adds a listener to call when this object is clicked.
 	 * 
-	 * @param clickable The {@link Clickable2D} to call
+	 * @param clickable A {@link Clickable2D} to call
 	 */
-	public void setClickable(Clickable2D clickable) {
-		this.clickable = clickable;
+	public void addClickable(Clickable2D clickable) {
+		if (!clickables.contains(clickable))
+			clickables.add(clickable);
+	}
+
+	public void removeClickable(Clickable2D clickable) {
+		clickables.remove(clickable);
 	}
 
 	@Override
 	public void clickLocal(Ray ray) {
-		if (clickable == null) // no listener
+		if (clickables.isEmpty()) // no listener
 			return;
 
 		if (Math.abs(ray.direction.z()) <= 1E-20) { // parallel
 			if (Math.abs(ray.position.z()) <= 1E-20) // infinite intersection
-				clickable.onClick(0.5, 0.5);
+				callClickables(0.5, 0.5);
 			// no intersection
 			return;
 		}
@@ -71,7 +80,12 @@ public abstract class ClickableTransformableRectangle extends ClickableTransform
 		// check if intersection
 		if (position.x >= bounds.x && position.x <= bounds.x + bounds.width //
 				&& position.y >= bounds.y && position.y <= bounds.y + bounds.height) {
-			clickable.onClick(position.x + 0.5, position.y + 0.5);
+			callClickables(position.x + 0.5, position.y + 0.5);
 		}
+	}
+
+	private void callClickables(double x, double y) {
+		for (Clickable2D clickable : clickables)
+			clickable.onClick(x, y);
 	}
 }
