@@ -1,4 +1,4 @@
-package tv.floeze.bottleengine.client.graphics;
+package tv.floeze.bottleengine.client.graphics.click;
 
 import static org.lwjgl.glfw.GLFW.*;
 

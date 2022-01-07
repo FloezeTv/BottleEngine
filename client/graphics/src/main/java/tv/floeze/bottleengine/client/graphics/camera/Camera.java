@@ -10,9 +10,9 @@ import java.util.List;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 
-import tv.floeze.bottleengine.client.graphics.ClickListener;
-import tv.floeze.bottleengine.client.graphics.Clickable;
 import tv.floeze.bottleengine.client.graphics.Transformable;
+import tv.floeze.bottleengine.client.graphics.click.ClickListener;
+import tv.floeze.bottleengine.client.graphics.click.Clickable;
 import tv.floeze.bottleengine.client.graphics.shader.Shader;
 import tv.floeze.bottleengine.client.graphics.window.Viewport;
 

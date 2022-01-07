@@ -21,7 +21,7 @@ import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
-import tv.floeze.bottleengine.client.graphics.ClickListener;
+import tv.floeze.bottleengine.client.graphics.click.ClickListener;
 import tv.floeze.bottleengine.client.graphics.io.ImageLoader;
 import tv.floeze.bottleengine.common.threads.Runner;
 

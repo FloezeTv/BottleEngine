@@ -1,4 +1,4 @@
-package tv.floeze.bottleengine.client.graphics;
+package tv.floeze.bottleengine.client.graphics.click;
 
 /**
  * A {@link Clickable2D} listens for a click on a 2D surface

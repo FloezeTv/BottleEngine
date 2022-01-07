@@ -2,9 +2,9 @@ package tv.floeze.bottleengine.client.graphics.window;
 
 import static org.lwjgl.opengl.GL11.glViewport;
 
-import tv.floeze.bottleengine.client.graphics.ClickListener;
 import tv.floeze.bottleengine.client.graphics.Renderable;
 import tv.floeze.bottleengine.client.graphics.camera.Camera;
+import tv.floeze.bottleengine.client.graphics.click.ClickListener;
 
 /**
  * A viewport that renders to a part of the window.

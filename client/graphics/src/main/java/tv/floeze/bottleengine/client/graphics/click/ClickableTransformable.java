@@ -1,10 +1,11 @@
-package tv.floeze.bottleengine.client.graphics;
+package tv.floeze.bottleengine.client.graphics.click;
 
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 
-import tv.floeze.bottleengine.client.graphics.Clickable.Ray;
+import tv.floeze.bottleengine.client.graphics.Transformable;
 import tv.floeze.bottleengine.client.graphics.camera.Camera;
+import tv.floeze.bottleengine.client.graphics.click.Clickable.Ray;
 
 /**
  * A {@link Clickable} that is also a {@link Transformable}.<br />

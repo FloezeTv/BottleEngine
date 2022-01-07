@@ -9,6 +9,7 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
+import tv.floeze.bottleengine.client.graphics.click.ClickableTransformableRectangle;
 import tv.floeze.bottleengine.client.graphics.io.Texture;
 import tv.floeze.bottleengine.client.graphics.shader.Shader;
 import tv.floeze.bottleengine.common.threads.RunnerLocal;

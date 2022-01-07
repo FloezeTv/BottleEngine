@@ -1,4 +1,4 @@
-package tv.floeze.bottleengine.client.graphics;
+package tv.floeze.bottleengine.client.graphics.click;
 
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
