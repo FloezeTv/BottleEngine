@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 import org.joml.Vector3d;
 
+import tv.floeze.bottleengine.client.graphics.click.Clickable.Ray;
+
 /**
  * A {@link ClickableTransformable} that checks if the {@link Ray} intersects
  * the {@link Rectangle} bounds of this object.
@@ -57,13 +59,13 @@ public abstract class ClickableTransformableRectangle extends ClickableTransform
 	}
 
 	@Override
-	public void clickLocal(Ray ray) {
+	public void clickLocal(int button, int action, int modifiers, Ray ray) {
 		if (clickables.isEmpty()) // no listener
 			return;
 
 		if (Math.abs(ray.direction.z()) <= 1E-20) { // parallel
 			if (Math.abs(ray.position.z()) <= 1E-20) // infinite intersection
-				callClickables(0.5, 0.5);
+				callClickables(button, action, modifiers, 0.5, 0.5);
 			// no intersection
 			return;
 		}
@@ -80,12 +82,12 @@ public abstract class ClickableTransformableRectangle extends ClickableTransform
 		// check if intersection
 		if (position.x >= bounds.x && position.x <= bounds.x + bounds.width //
 				&& position.y >= bounds.y && position.y <= bounds.y + bounds.height) {
-			callClickables(position.x + 0.5, position.y + 0.5);
+			callClickables(button, action, modifiers, position.x + 0.5, position.y + 0.5);
 		}
 	}
 
-	private void callClickables(double x, double y) {
+	private void callClickables(int button, int action, int modifiers, double x, double y) {
 		for (Clickable2D clickable : clickables)
-			clickable.onClick(x, y);
+			clickable.onClick(button, action, modifiers, x, y);
 	}
 }

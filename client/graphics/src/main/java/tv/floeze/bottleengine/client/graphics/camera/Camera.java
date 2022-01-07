@@ -175,7 +175,7 @@ public abstract class Camera extends Transformable implements ClickListener {
 		Clickable.Ray ray = new Clickable.Ray(from, to.sub(from));
 
 		for (Clickable c : clickables)
-			c.click(ray);
+			c.click(button, action, modifiers, ray);
 	}
 
 	/**

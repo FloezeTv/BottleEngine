@@ -22,17 +22,20 @@ public abstract class ClickableTransformable extends Transformable implements Cl
 	 * performs actions if clicked.<br />
 	 * The {@link Ray} is projected into this {@link Transformable}s local space.
 	 * 
-	 * @param ray {@link Ray} projected from a {@link Camera} into the local space
-	 *            of this {@link Transformable}
+	 * @param button    index of the mouse button
+	 * @param action    if the button was pressed or released
+	 * @param modifiers if any modifier keys were pressed
+	 * @param ray       {@link Ray} projected from a {@link Camera} into the local
+	 *                  space of this {@link Transformable}
 	 */
-	public abstract void clickLocal(Ray ray);
+	public abstract void clickLocal(int button, int action, int modifiers, Ray ray);
 
 	@Override
-	public void click(Ray ray) {
+	public void click(int button, int action, int modifiers, Ray ray) {
 		Matrix4d invertedTransform = getTransform().invert(new Matrix4d());
 		Clickable.Ray localRay = new Clickable.Ray(ray.position.mulPosition(invertedTransform, new Vector3d()),
 				ray.direction.mulDirection(invertedTransform, new Vector3d()).normalize());
-		clickLocal(localRay);
+		clickLocal(button, action, modifiers, localRay);
 	}
 
 }

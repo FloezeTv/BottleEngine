@@ -45,8 +45,11 @@ public interface Clickable {
 	 * Checks if this {@link Clickable} is intersected by the {@link Ray} and
 	 * performs actions if clicked
 	 * 
-	 * @param ray {@link Ray} projected from a {@link Camera}
+	 * @param button    index of the mouse button
+	 * @param action    if the button was pressed or released
+	 * @param modifiers if any modifier keys were pressed
+	 * @param ray       {@link Ray} projected from a {@link Camera}
 	 */
-	public void click(Ray ray);
+	public void click(int button, int action, int modifiers, Ray ray);
 
 }
