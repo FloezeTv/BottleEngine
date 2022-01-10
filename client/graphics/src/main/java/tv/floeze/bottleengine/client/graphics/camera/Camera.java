@@ -155,15 +155,17 @@ public abstract class Camera extends Transformable implements ClickListener {
 		return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
 	}
 
+	protected abstract Vector3d getClickFrom(double x, double y);
+
 	@Override
 	public void onClick(int button, int action, int modifiers, double x, double y) {
 		Matrix4d projInv = projectionMatrix.invert(new Matrix4d());
 		Matrix4d viewInv = getTransform(); // view is inverted transform
 
 		x = mapToRange(x, 0, getWidth(), -1, 1);
-		y = mapToRange(y, 0, getHeight(), -1, 1);
+		y = mapToRange(y, 0, getHeight(), 1, -1); // need to map between screen (y-down) and OpenGL (y-up)
 
-		Vector3d from = new Vector3d(0, 0, -1);
+		Vector3d from = getClickFrom(x, y);
 		Vector3d to = new Vector3d(x, y, 0);
 
 		from.mulPosition(projInv);
