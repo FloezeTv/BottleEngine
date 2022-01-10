@@ -14,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL;
@@ -171,10 +172,11 @@ public class Window {
 		Runner.MAIN.repeat(GLFW::glfwPollEvents);
 	}
 
-	/**
-	 * The saved position before going into fullscreen
-	 */
-	private IntBuffer savedX, savedY, savedWidth, savedHeight;
+	// Saved positions for going into fullscreen
+	private IntBuffer savedX = BufferUtils.createIntBuffer(1);
+	private IntBuffer savedY = BufferUtils.createIntBuffer(1);
+	private IntBuffer savedWidth = BufferUtils.createIntBuffer(1);
+	private IntBuffer savedHeight = BufferUtils.createIntBuffer(1);
 
 	/**
 	 * Creates a new window.
@@ -338,6 +340,10 @@ public class Window {
 		}
 
 		if (!isFullscreen()) {
+			savedX.clear();
+			savedY.clear();
+			savedWidth.clear();
+			savedHeight.clear();
 			glfwGetWindowSize(handle, savedWidth, savedHeight);
 			glfwGetWindowPos(handle, savedX, savedY);
 		}
