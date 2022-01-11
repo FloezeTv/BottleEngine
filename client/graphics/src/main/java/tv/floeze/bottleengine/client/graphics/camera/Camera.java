@@ -42,7 +42,7 @@ import tv.floeze.bottleengine.client.graphics.window.Viewport;
  */
 public abstract class Camera extends Transformable implements ClickListener {
 
-	private final int UBO;
+	private final int ubo;
 
 	protected Matrix4d projectionMatrix = new Matrix4d();
 
@@ -61,12 +61,12 @@ public abstract class Camera extends Transformable implements ClickListener {
 	 * @param width  width of the camera
 	 * @param height height of the camera
 	 */
-	public Camera(int width, int height) {
+	protected Camera(int width, int height) {
 		this.width = width;
 		this.height = height;
 
-		UBO = glGenBuffers();
-		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+		ubo = glGenBuffers();
+		glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 		// allocate buffer for 2 matrices with 4 * 4 floats
 		glBufferData(GL_UNIFORM_BUFFER, (2 * (4 * 4)) * Float.BYTES, GL_DYNAMIC_DRAW);
 
@@ -95,12 +95,12 @@ public abstract class Camera extends Transformable implements ClickListener {
 	 * Sets the matrices. This does not update the matrices.
 	 */
 	public void setMatrices() {
-		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+		glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 
 		glBufferSubData(GL_UNIFORM_BUFFER, (0 * (4 * 4)) * Float.BYTES, viewMatrix.get(new float[4 * 4]));
 		glBufferSubData(GL_UNIFORM_BUFFER, (1 * (4 * 4)) * Float.BYTES, projectionMatrix.get(new float[4 * 4]));
 
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBO);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
 	}
 
 	/**

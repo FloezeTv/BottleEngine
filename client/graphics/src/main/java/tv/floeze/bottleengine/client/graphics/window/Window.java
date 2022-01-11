@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.lwjgl.BufferUtils;
@@ -144,7 +145,7 @@ public class Window {
 	/**
 	 * The viewports
 	 */
-	private final List<Viewport> viewports = new ArrayList<Viewport>();
+	private final List<Viewport> viewports = new ArrayList<>();
 
 	/**
 	 * The background color that is shown where nothing is rendered or {@code null}
@@ -159,7 +160,7 @@ public class Window {
 	 * 
 	 * @see #setCloseHandler(Supplier)
 	 */
-	private Supplier<Boolean> closeHandler = () -> true;
+	private BooleanSupplier closeHandler = () -> true;
 
 	/**
 	 * Gets called when the window is clicked on
@@ -216,7 +217,7 @@ public class Window {
 
 		// set callbacks
 		glfwSetFramebufferSizeCallback(handle, (window, w, h) -> execute(() -> updateViewports(w, h)));
-		glfwSetWindowCloseCallback(handle, window -> glfwSetWindowShouldClose(window, closeHandler.get()));
+		glfwSetWindowCloseCallback(handle, window -> glfwSetWindowShouldClose(window, closeHandler.getAsBoolean()));
 		glfwSetMouseButtonCallback(handle, (window, button, action, mods) -> {
 			try (MemoryStack stack = MemoryStack.stackPush()) {
 				DoubleBuffer x = stack.doubles(1);
@@ -375,7 +376,7 @@ public class Window {
 	 *                     <li>{@code false} if the window should not close</li>
 	 *                     </ul>
 	 */
-	public void setCloseHandler(Supplier<Boolean> closeHandler) {
+	public void setCloseHandler(BooleanSupplier closeHandler) {
 		this.closeHandler = closeHandler;
 	}
 
@@ -403,9 +404,12 @@ public class Window {
 	 * Updates all {@link Viewport}s of this {@link Window}
 	 */
 	public void updateViewports() {
-		int[] width = new int[1], height = new int[1];
-		glfwGetWindowSize(handle, width, height);
-		updateViewports(width[0], height[0]);
+		try (MemoryStack stack = MemoryStack.stackPush()) {
+			IntBuffer width = stack.ints(1);
+			IntBuffer height = stack.ints(1);
+			glfwGetWindowSize(handle, width, height);
+			updateViewports(width.get(), height.get());
+		}
 	}
 
 	/**
@@ -414,9 +418,12 @@ public class Window {
 	 * @param viewport {@link Viewport} to update
 	 */
 	private void updateViewport(Viewport viewport) {
-		int[] width = new int[1], height = new int[1];
-		glfwGetWindowSize(handle, width, height);
-		viewport.updateSize(width[0], height[0]);
+		try (MemoryStack stack = MemoryStack.stackPush()) {
+			IntBuffer width = stack.ints(1);
+			IntBuffer height = stack.ints(1);
+			glfwGetWindowSize(handle, width, height);
+			viewport.updateSize(width.get(), height.get());
+		}
 	}
 
 	/**
@@ -593,7 +600,7 @@ public class Window {
 	 */
 	public static void initGlfw() {
 		if (!glfwInit())
-			throw new RuntimeException("Couldn't initialize GLWF");
+			throw new InitException("GLFW");
 	}
 
 }
