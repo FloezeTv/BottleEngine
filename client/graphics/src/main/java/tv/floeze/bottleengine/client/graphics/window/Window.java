@@ -5,6 +5,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import java.awt.Color;
+import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -529,6 +530,24 @@ public class Window {
 	 */
 	public boolean removeViewport(Viewport viewport) {
 		return viewports.remove(viewport);
+	}
+
+	/**
+	 * Gets the RGB values of the current screen
+	 * 
+	 * @return an array of bytes with the rgb information of this {@link Window}
+	 */
+	public byte[] getScreenshot() {
+		try (MemoryStack stack = MemoryStack.stackPush()) {
+			IntBuffer width = stack.ints(1);
+			IntBuffer height = stack.ints(1);
+			glfwGetWindowSize(handle, width, height);
+			ByteBuffer image = BufferUtils.createByteBuffer(width.get(0) * height.get(0) * 3);
+			glReadPixels(0, 0, width.get(0), height.get(0), GL_RGB, GL_UNSIGNED_BYTE, image);
+			byte[] result = new byte[image.capacity()];
+			image.get(result);
+			return result;
+		}
 	}
 
 	/**
