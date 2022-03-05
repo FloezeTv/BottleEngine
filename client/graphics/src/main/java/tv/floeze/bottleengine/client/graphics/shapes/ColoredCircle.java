@@ -1,0 +1,28 @@
+package tv.floeze.bottleengine.client.graphics.shapes;
+
+import tv.floeze.bottleengine.client.graphics.shader.Shader;
+import tv.floeze.bottleengine.common.threads.RunnerLocal;
+
+/**
+ * A colored circle. <br />
+ * Does not have to be a circle; it can be made into an ellipse using
+ * {@link #getScale()} to scale the x-direction independent of the y-direction.
+ * 
+ * @author Floeze
+ *
+ */
+public class ColoredCircle extends ColoredShape {
+
+	private static final RunnerLocal<Shader> shaders = new RunnerLocal<>(
+			() -> new Shader("bottleengine/shaders/circle.vert", "bottleengine/shaders/circle.frag"), Shader::dispose);
+
+	public ColoredCircle() {
+		setShader(shaders.get(this));
+	}
+
+	@Override
+	protected void disposeShader() {
+		shaders.abandon(this);
+	}
+
+}

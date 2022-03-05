@@ -184,8 +184,26 @@ public class Shader implements Disposable {
 		glUniform3d(getUniformLocation(name), vector.x(), vector.y(), vector.z());
 	}
 
+	public void set(String name, Vector4fc vector) {
+		glUniform4f(getUniformLocation(name), vector.x(), vector.y(), vector.z(), vector.w());
+	}
+
+	public void set(String name, Vector4dc vector) {
+		glUniform4f(getUniformLocation(name), (float) vector.x(), (float) vector.y(), (float) vector.z(),
+				(float) vector.w());
+	}
+
+	public void setDouble(String name, Vector4dc vector) {
+		glUniform4d(getUniformLocation(name), vector.x(), vector.y(), vector.z(), vector.w());
+	}
+
 	public void set(String name, Color color) {
 		glUniform3f(getUniformLocation(name), color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f);
+	}
+
+	public void setWithAlpha(String name, Color color) {
+		glUniform4f(getUniformLocation(name), color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f,
+				color.getAlpha() / 255f);
 	}
 
 	public void set(String name, Matrix4fc matrix) {
