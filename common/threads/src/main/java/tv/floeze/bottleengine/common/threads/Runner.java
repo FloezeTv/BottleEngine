@@ -35,6 +35,19 @@ public final class Runner implements Runnable {
 
 	private static final ThreadLocal<Runner> currentRunner = new ThreadLocal<>();
 
+	private static final class Repeatable {
+
+		public final Runnable runnable;
+		public final long interval;
+		public long lastTime;
+
+		public Repeatable(Runnable runnable, long interval) {
+			this.runnable = runnable;
+			this.interval = interval;
+		}
+
+	}
+
 	/**
 	 * The possible states a {@link Runner} can have.
 	 * 
@@ -65,7 +78,7 @@ public final class Runner implements Runnable {
 	/**
 	 * All the tasks that should be repeated
 	 */
-	private final List<Runnable> repeatables = new ArrayList<>();
+	private final List<Repeatable> repeatables = new ArrayList<>();
 
 	/**
 	 * The lock for {@link #repeatables}
@@ -157,8 +170,22 @@ public final class Runner implements Runnable {
 	 * @param runnable {@link Runnable} to repeat
 	 */
 	public void repeat(Runnable runnable) {
+		repeat(runnable, -1);
+	}
+
+	/**
+	 * Repeats the {@link Runnable} while waiting at least the specified interval
+	 * between executions.<br />
+	 * <br />
+	 * The time between may be longer, if different tasks block the thread while
+	 * waiting, but will never be shorter than the specified interval.
+	 * 
+	 * @param runnable {@link Runnable} to repeat
+	 * @param interval minimum interval to wait in ms
+	 */
+	public void repeat(Runnable runnable, long interval) {
 		repeatablesLock.writeLock().lock();
-		repeatables.add(runnable);
+		repeatables.add(new Repeatable(runnable, interval));
 		repeatablesLock.writeLock().unlock();
 	}
 
@@ -180,9 +207,18 @@ public final class Runner implements Runnable {
 			// wait until possible to read repeatables
 			repeatablesLock.readLock().lock();
 			// for every repeatable
-			for (Runnable repeatable : repeatables) {
+			for (Repeatable repeatable : repeatables) {
+				long currentTime = System.currentTimeMillis();
+
+				// check if at least interval has passed
+				if (repeatable.lastTime + repeatable.interval > currentTime)
+					continue;
+
+				// set that repeatable has ran
+				repeatable.lastTime = currentTime;
+
 				// run that repeatable
-				repeatable.run();
+				repeatable.runnable.run();
 
 				// run runnables as soon as possible (in between repeatables)
 				runRunnables();
