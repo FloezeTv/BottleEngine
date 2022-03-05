@@ -10,9 +10,8 @@ const float radius = 0.5;
 const vec2 center = vec2(0, 0);
 
 void main() {
-	if (distance(center, coord) <= radius) {
-		fragColor = color;
-	} else {
-		fragColor = vec4(0);
-	}
+	float distance = distance(center, coord);
+	float delta = fwidth(distance);
+	float alpha = smoothstep(radius, radius - delta, distance);
+	fragColor = vec4(color.xyz, color.w * alpha);
 }
