@@ -26,10 +26,10 @@ public class Sprite extends ClickableTransformableRectangle implements Renderabl
 	 * Vertices of the Sprite (for creating {@link #VAOs} in {@link #getVAO()})
 	 */
 	private static final float[] VERTICES = { //
-			-0.5f, -0.5f, 0, 0, 1, // bottom left
-			0.5f, -0.5f, 0, 1, 1, // bottom right
-			0.5f, 0.5f, 0, 1, 0, // top right
-			-0.5f, 0.5f, 0, 0, 0, // top left
+			-0.5f, -0.5f, 0, 0, 0, // bottom left
+			0.5f, -0.5f, 0, 1, 0, // bottom right
+			0.5f, 0.5f, 0, 1, 1, // top right
+			-0.5f, 0.5f, 0, 0, 1, // top left
 	};
 
 	/**
