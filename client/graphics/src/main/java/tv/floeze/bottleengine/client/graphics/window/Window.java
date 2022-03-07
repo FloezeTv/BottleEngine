@@ -26,6 +26,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import tv.floeze.bottleengine.client.graphics.click.ClickListener;
 import tv.floeze.bottleengine.client.graphics.io.ImageLoader;
+import tv.floeze.bottleengine.client.graphics.keys.KeyListener;
 import tv.floeze.bottleengine.common.threads.Runner;
 
 /**
@@ -170,6 +171,13 @@ public class Window {
 	 */
 	private ClickListener clickListener = ClickListener.NOTHING;
 
+	/**
+	 * Gets called when a key is pressed/released in the window
+	 * 
+	 * @see #setKeyListener(KeyListener)
+	 */
+	private KeyListener keyListener = KeyListener.NOTHING;
+
 	static {
 		Runner.MAIN.repeat(GLFW::glfwPollEvents);
 	}
@@ -231,6 +239,8 @@ public class Window {
 					viewport.onClick(button, action, mods, x.get(0), y.get(0));
 			}
 		});
+		glfwSetKeyCallback(handle,
+				(window, key, scancode, action, mods) -> keyListener.onKey(key, scancode, action, mods));
 
 		runner.run(() -> {
 			glfwMakeContextCurrent(handle);
@@ -388,6 +398,15 @@ public class Window {
 	 */
 	public void setClickListener(ClickListener clickListener) {
 		this.clickListener = clickListener != null ? clickListener : ClickListener.NOTHING;
+	}
+
+	/**
+	 * Sets a listener to be executed when a key is pressed/released in this window
+	 * 
+	 * @param keyListener the listener to call when a key is pressed/released
+	 */
+	public void setKeyListener(KeyListener keyListener) {
+		this.keyListener = keyListener != null ? keyListener : KeyListener.NOTHING;
 	}
 
 	/**
