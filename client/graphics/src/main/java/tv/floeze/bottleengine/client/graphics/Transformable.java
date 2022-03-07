@@ -1,7 +1,7 @@
 package tv.floeze.bottleengine.client.graphics;
 
-import org.joml.AxisAngle4d;
 import org.joml.Matrix4d;
+import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
 /**
@@ -24,7 +24,7 @@ public abstract class Transformable {
 	private int currentModelIndex = 0;
 	private final Vector3d position = new Vector3d();
 	private final Vector3d scale = new Vector3d(1);
-	private final AxisAngle4d rotation = new AxisAngle4d();
+	private final Quaterniond rotation = new Quaterniond();
 
 	/**
 	 * If you modify this transformation matrix manually, don't call
@@ -59,11 +59,12 @@ public abstract class Transformable {
 
 	/**
 	 * If you change the values of the rotation, call {@link #updateTransform()} to
-	 * update the transformation matrix the changes.
+	 * update the transformation matrix the changes. <br />
+	 * Do <b>not</b> use to scale, as the scale will not be applied.
 	 * 
 	 * @return The rotation of this object.
 	 */
-	public AxisAngle4d getRotation() {
+	public Quaterniond getRotation() {
 		return rotation;
 	}
 
@@ -74,7 +75,7 @@ public abstract class Transformable {
 	 */
 	public void updateTransform() {
 		int edit = getUnusedModelIndex();
-		model[edit].identity().translate(position).rotate(rotation).scale(scale);
+		model[edit].identity().translate(position).rotate(rotation.normalize()).scale(scale);
 		currentModelIndex = edit;
 	}
 
