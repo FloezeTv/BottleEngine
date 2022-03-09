@@ -22,6 +22,7 @@ public abstract class Transformable {
 	 */
 	private final Matrix4d[] model = { new Matrix4d(), new Matrix4d() };
 	private int currentModelIndex = 0;
+	private final Vector3d origin = new Vector3d();
 	private final Vector3d position = new Vector3d();
 	private final Vector3d scale = new Vector3d(1);
 	private final Quaterniond rotation = new Quaterniond();
@@ -35,6 +36,17 @@ public abstract class Transformable {
 	 */
 	public Matrix4d getTransform() {
 		return model[currentModelIndex];
+	}
+
+	/**
+	 * If you change the values of the origin, call {@link #updateTransform()} to
+	 * update the transformation matrix the changes.<br />
+	 * The origin is the point the object will be scaled/rotated around.
+	 * 
+	 * @return The origin of this object
+	 */
+	public Vector3d getOrigin() {
+		return origin;
 	}
 
 	/**
@@ -75,7 +87,7 @@ public abstract class Transformable {
 	 */
 	public void updateTransform() {
 		int edit = getUnusedModelIndex();
-		model[edit].identity().translate(position).rotate(rotation.normalize()).scale(scale);
+		model[edit].identity().translate(position).rotate(rotation.normalize()).scale(scale).translate(origin);
 		currentModelIndex = edit;
 	}
 
