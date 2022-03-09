@@ -3,13 +3,24 @@ package tv.floeze.bottleengine.client.graphics.shader;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.opengl.GL40.*;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joml.*;
+import org.joml.Matrix4dc;
+import org.joml.Matrix4fc;
+import org.joml.Vector2dc;
+import org.joml.Vector2fc;
+import org.joml.Vector2ic;
+import org.joml.Vector3dc;
+import org.joml.Vector3fc;
+import org.joml.Vector3ic;
+import org.joml.Vector4dc;
+import org.joml.Vector4fc;
+import org.joml.Vector4ic;
 import org.lwjgl.opengl.GL20;
 
 import tv.floeze.bottleengine.client.graphics.Disposable;
@@ -57,20 +68,54 @@ public class Shader implements Disposable {
 	}
 
 	/**
-	 * The path of the common shader for camera operations
+	 * The path of the common vertex shader for camera operations
 	 */
-	private static final String CAMERA_COMMON_PATH = "bottleengine/shaders/camera.common.vert";
+	private static final String CAMERA_COMMON_VERTEX_PATH = "bottleengine/shaders/camera.common.vert";
+	/**
+	 * The path of the common geometry shader for camera operations
+	 */
+	private static final String CAMERA_COMMON_GEOMETRY_PATH = "bottleengine/shaders/camera.common.geom";
+	/**
+	 * The path of the common fragment shader for camera operations
+	 */
+	private static final String CAMERA_COMMON_FRAGMENT_PATH = "bottleengine/shaders/camera.common.frag";
 
 	/**
-	 * The common shader for camera operations
+	 * The common vertex shader for camera operations
 	 */
-	private static final RunnerLocal<Integer> cameraCommon = new RunnerLocal<>(() -> {
+	private static final RunnerLocal<Integer> cameraCommonVertex = new RunnerLocal<>(() -> {
 		int shader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(shader, ResourceLoader.loadTextFromResources(CAMERA_COMMON_PATH));
+		glShaderSource(shader, ResourceLoader.loadTextFromResources(CAMERA_COMMON_VERTEX_PATH));
 		glCompileShader(shader);
 
 		if (glGetShaderi(shader, GL_COMPILE_STATUS) != GL_TRUE)
-			throw new ShaderException("Failed to compile common camera shader", glGetShaderInfoLog(shader));
+			throw new ShaderException("Failed to compile common camera vertex shader", glGetShaderInfoLog(shader));
+
+		return shader;
+	}, GL20::glDeleteShader);
+	/**
+	 * The common geometry shader for camera operations
+	 */
+	private static final RunnerLocal<Integer> cameraCommonGeometry = new RunnerLocal<>(() -> {
+		int shader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(shader, ResourceLoader.loadTextFromResources(CAMERA_COMMON_GEOMETRY_PATH));
+		glCompileShader(shader);
+
+		if (glGetShaderi(shader, GL_COMPILE_STATUS) != GL_TRUE)
+			throw new ShaderException("Failed to compile common camera geometry shader", glGetShaderInfoLog(shader));
+
+		return shader;
+	}, GL20::glDeleteShader);
+	/**
+	 * The common fragment shader for camera operations
+	 */
+	private static final RunnerLocal<Integer> cameraCommonFragment = new RunnerLocal<>(() -> {
+		int shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(shader, ResourceLoader.loadTextFromResources(CAMERA_COMMON_FRAGMENT_PATH));
+		glCompileShader(shader);
+
+		if (glGetShaderi(shader, GL_COMPILE_STATUS) != GL_TRUE)
+			throw new ShaderException("Failed to compile common camera fragment shader", glGetShaderInfoLog(shader));
 
 		return shader;
 	}, GL20::glDeleteShader);
@@ -90,9 +135,26 @@ public class Shader implements Disposable {
 		List<Integer> glShaders = new ArrayList<>();
 
 		try {
-			glAttachShader(program, cameraCommon.get(this));
+			// if the common shaders have been added
+			boolean addedCommonVertex = false;
+			boolean addedCommonGeometry = false;
+			boolean addedCommonFragment = false;
 
 			for (Part part : parts) {
+				// add the common shaders if needed but not already added
+				if (!addedCommonVertex && part.type == GL_VERTEX_SHADER) {
+					glAttachShader(program, cameraCommonVertex.get(this));
+					addedCommonVertex = true;
+				}
+				if (!addedCommonGeometry && part.type == GL_GEOMETRY_SHADER) {
+					glAttachShader(program, cameraCommonGeometry.get(this));
+					addedCommonGeometry = true;
+				}
+				if (!addedCommonFragment && part.type == GL_FRAGMENT_SHADER) {
+					glAttachShader(program, cameraCommonFragment.get(this));
+					addedCommonFragment = true;
+				}
+
 				int shader = glCreateShader(part.type);
 				glShaders.add(shader);
 
@@ -172,6 +234,10 @@ public class Shader implements Disposable {
 		glUniform2d(getUniformLocation(name), vector.x(), vector.y());
 	}
 
+	public void set(String name, Vector2ic vector) {
+		glUniform2i(getUniformLocation(name), vector.x(), vector.y());
+	}
+
 	public void set(String name, Vector3fc vector) {
 		glUniform3f(getUniformLocation(name), vector.x(), vector.y(), vector.z());
 	}
@@ -182,6 +248,10 @@ public class Shader implements Disposable {
 
 	public void setDouble(String name, Vector3dc vector) {
 		glUniform3d(getUniformLocation(name), vector.x(), vector.y(), vector.z());
+	}
+
+	public void set(String name, Vector3ic vector) {
+		glUniform3i(getUniformLocation(name), vector.x(), vector.y(), vector.z());
 	}
 
 	public void set(String name, Vector4fc vector) {
@@ -195,6 +265,10 @@ public class Shader implements Disposable {
 
 	public void setDouble(String name, Vector4dc vector) {
 		glUniform4d(getUniformLocation(name), vector.x(), vector.y(), vector.z(), vector.w());
+	}
+
+	public void set(String name, Vector4ic vector) {
+		glUniform4i(getUniformLocation(name), vector.x(), vector.y(), vector.z(), vector.w());
 	}
 
 	public void set(String name, Color color) {
@@ -225,6 +299,9 @@ public class Shader implements Disposable {
 	@Override
 	public void dispose() {
 		glDeleteProgram(program);
+		cameraCommonVertex.abandon(this);
+		cameraCommonGeometry.abandon(this);
+		cameraCommonFragment.abandon(this);
 	}
 
 	/**
