@@ -155,8 +155,6 @@ public abstract class Camera extends Transformable implements ClickListener {
 		return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
 	}
 
-	protected abstract Vector3d getClickFrom(double x, double y);
-
 	@Override
 	public void onClick(int button, int action, int modifiers, double x, double y) {
 		Matrix4d projInv = projectionMatrix.invert(new Matrix4d());
@@ -165,14 +163,24 @@ public abstract class Camera extends Transformable implements ClickListener {
 		x = mapToRange(x, 0, getWidth(), -1, 1);
 		y = mapToRange(y, 0, getHeight(), 1, -1); // need to map between screen (y-down) and OpenGL (y-up)
 
-		Vector3d from = getClickFrom(x, y);
-		Vector3d to = new Vector3d(x, y, 0);
+		Vector3d from = new Vector3d(x, y, -1);
+		Vector3d to = new Vector3d(x, y, 1);
 
-		from.mulPosition(projInv);
-		to.mulPosition(projInv);
+		double w; // w-component of the vector multiplication
 
-		from.mulPosition(viewInv);
-		to.mulPosition(viewInv);
+		w = from.mulPositionW(projInv);
+		if (w != 0) // direct equals should be enough, as only division by 0 is a problem
+			from.div(w);
+		w = to.mulPositionW(projInv);
+		if (w != 0)
+			to.div(w);
+
+		w = from.mulPositionW(viewInv);
+		if (w != 0)
+			from.div(w);
+		w = to.mulPositionW(viewInv);
+		if (w != 0)
+			to.div(w);
 
 		Clickable.Ray ray = new Clickable.Ray(from, to.sub(from));
 
