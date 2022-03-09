@@ -11,6 +11,7 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 import tv.floeze.bottleengine.client.graphics.click.ClickableTransformableRectangle;
 import tv.floeze.bottleengine.client.graphics.io.Texture;
+import tv.floeze.bottleengine.client.graphics.shader.RunnerLocalShader;
 import tv.floeze.bottleengine.client.graphics.shader.Shader;
 import tv.floeze.bottleengine.common.threads.RunnerLocal;
 
@@ -40,8 +41,8 @@ public class Sprite extends ClickableTransformableRectangle implements Renderabl
 			2, 3, 0, // to left triangle
 	};
 
-	private static final RunnerLocal<Shader> shaders = new RunnerLocal<>(
-			() -> new Shader("bottleengine/shaders/sprite.vert", "bottleengine/shaders/sprite.frag"), Shader::dispose);
+	private static final RunnerLocalShader shaders = new RunnerLocalShader("bottleengine/shaders/sprite.vert",
+			"bottleengine/shaders/sprite.frag");
 
 	private static final RunnerLocal<int[]> buffers = new RunnerLocal<>(() -> {
 		int vao = glGenVertexArrays();

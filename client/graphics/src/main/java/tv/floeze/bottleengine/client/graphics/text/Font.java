@@ -30,8 +30,8 @@ import org.lwjgl.stb.STBTTPackedchar.Buffer;
 import org.lwjgl.system.MemoryStack;
 
 import tv.floeze.bottleengine.client.graphics.Disposable;
+import tv.floeze.bottleengine.client.graphics.shader.RunnerLocalShader;
 import tv.floeze.bottleengine.client.graphics.shader.Shader;
-import tv.floeze.bottleengine.common.threads.RunnerLocal;
 
 /**
  * A font that can be loaded from a local ttf file and render text to screen
@@ -112,8 +112,8 @@ public class Font implements Disposable {
 	/**
 	 * The {@link Shader}s for {@link Font}s
 	 */
-	private static final RunnerLocal<Shader> shaders = new RunnerLocal<>(
-			() -> new Shader("bottleengine/shaders/font.vert", "bottleengine/shaders/font.frag"), Shader::dispose);
+	private static final RunnerLocalShader shaders = new RunnerLocalShader("bottleengine/shaders/font.vert",
+			"bottleengine/shaders/font.frag");
 
 	/**
 	 * The shader for this {@link Font}

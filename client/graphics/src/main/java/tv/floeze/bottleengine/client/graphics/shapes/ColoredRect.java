@@ -1,7 +1,6 @@
 package tv.floeze.bottleengine.client.graphics.shapes;
 
-import tv.floeze.bottleengine.client.graphics.shader.Shader;
-import tv.floeze.bottleengine.common.threads.RunnerLocal;
+import tv.floeze.bottleengine.client.graphics.shader.RunnerLocalShader;
 
 /**
  * A colored rectangle.
@@ -11,8 +10,8 @@ import tv.floeze.bottleengine.common.threads.RunnerLocal;
  */
 public class ColoredRect extends ColoredShape {
 
-	private static final RunnerLocal<Shader> shaders = new RunnerLocal<>(
-			() -> new Shader("bottleengine/shaders/rect.vert", "bottleengine/shaders/rect.frag"), Shader::dispose);
+	private static final RunnerLocalShader shaders = new RunnerLocalShader("bottleengine/shaders/rect.vert",
+			"bottleengine/shaders/rect.frag");
 
 	public ColoredRect() {
 		setShader(shaders.get(this));
