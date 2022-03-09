@@ -377,6 +377,16 @@ public class Window {
 	}
 
 	/**
+	 * Sets if the window should render in Wireframes
+	 * 
+	 * @param wireframe {@code true} if window should render in wireframes,
+	 *                  {@code false} otherwise
+	 */
+	public void setWireframe(boolean wireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
+	}
+
+	/**
 	 * Sets a listener to be executed when this window should close
 	 * 
 	 * @param closeHandler a listener that gets executed when this window should
