@@ -110,6 +110,11 @@ public final class Runner implements Runnable {
 	};
 
 	/**
+	 * Wait on this object to sleep; notify when adding new runnable/repeatable
+	 */
+	private final Object sleeper = new Object();
+
+	/**
 	 * Creates a new {@link Runner}
 	 */
 	public Runner() {
@@ -137,6 +142,9 @@ public final class Runner implements Runnable {
 			future.complete(null);
 		});
 		runnablesLock.unlock();
+		synchronized (sleeper) {
+			sleeper.notifyAll();
+		}
 		return future;
 	}
 
@@ -161,6 +169,9 @@ public final class Runner implements Runnable {
 			future.complete(result);
 		});
 		runnablesLock.unlock();
+		synchronized (sleeper) {
+			sleeper.notifyAll();
+		}
 		return future;
 	}
 
@@ -187,6 +198,9 @@ public final class Runner implements Runnable {
 		repeatablesLock.writeLock().lock();
 		repeatables.add(new Repeatable(runnable, interval));
 		repeatablesLock.writeLock().unlock();
+		synchronized (sleeper) {
+			sleeper.notifyAll();
+		}
 	}
 
 	/**
@@ -204,15 +218,31 @@ public final class Runner implements Runnable {
 
 		// repeat while running
 		while (state.get().equals(State.RUNNING)) {
+			// Stop when interrupted
+			if (Thread.interrupted())
+				break;
+
 			// wait until possible to read repeatables
 			repeatablesLock.readLock().lock();
+
+			// the minimum time at which a repeatable has to be run
+			long minNextRun = Long.MAX_VALUE;
+
 			// for every repeatable
 			for (Repeatable repeatable : repeatables) {
 				long currentTime = System.currentTimeMillis();
 
+				// when this repeatable has to be run next
+				long nextRun = repeatable.lastTime + repeatable.interval;
+
+				if (nextRun < minNextRun)
+					minNextRun = nextRun;
+
 				// check if at least interval has passed
-				if (repeatable.lastTime + repeatable.interval > currentTime)
+				if (nextRun > currentTime)
 					continue;
+
+				minNextRun = -1;
 
 				// set that repeatable has ran
 				repeatable.lastTime = currentTime;
@@ -225,6 +255,19 @@ public final class Runner implements Runnable {
 			}
 			// unlock repeatables lock to allow scheduling again
 			repeatablesLock.readLock().unlock();
+
+			long waitTime = minNextRun - System.currentTimeMillis();
+
+			// sleep if no repeatables run
+			if (waitTime > 1) { // short times can be busy sleep, to prevent waiting too long
+				try {
+					synchronized (sleeper) {
+						sleeper.wait(waitTime * 3 / 4); // only wait 3/4 of time, to prevent waiting too long
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
 
 			// run runnables even if no repeatables exist
 			runRunnables();
