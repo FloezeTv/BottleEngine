@@ -27,6 +27,7 @@ import org.lwjgl.system.MemoryUtil;
 import tv.floeze.bottleengine.client.graphics.click.ClickListener;
 import tv.floeze.bottleengine.client.graphics.io.ImageLoader;
 import tv.floeze.bottleengine.client.graphics.keys.KeyListener;
+import tv.floeze.bottleengine.client.graphics.mouse.HoverListener;
 import tv.floeze.bottleengine.client.graphics.mouse.ScrollListener;
 import tv.floeze.bottleengine.common.threads.Runner;
 
@@ -186,6 +187,13 @@ public class Window {
 	 */
 	private ScrollListener scrollListener = ScrollListener.NOTHING;
 
+	/**
+	 * Gets called when the mouse is moved over the window
+	 * 
+	 * @see #setHoverListener(HoverListener)
+	 */
+	private HoverListener hoverListener = HoverListener.NOTHING;
+
 	static {
 		Runner.MAIN.repeat(GLFW::glfwPollEvents);
 	}
@@ -250,6 +258,7 @@ public class Window {
 		glfwSetKeyCallback(handle,
 				(window, key, scancode, action, mods) -> keyListener.onKey(key, scancode, action, mods));
 		glfwSetScrollCallback(handle, (window, xoffset, yoffset) -> scrollListener.onScroll(xoffset, yoffset));
+		glfwSetCursorPosCallback(handle, (window, xpos, ypos) -> hoverListener.onHover(xpos, ypos));
 
 		runner.run(() -> {
 			glfwMakeContextCurrent(handle);
@@ -435,6 +444,48 @@ public class Window {
 	 */
 	public void setScrollListener(ScrollListener scrollListener) {
 		this.scrollListener = scrollListener != null ? scrollListener : ScrollListener.NOTHING;
+	}
+
+	/**
+	 * Sets a listener to be executed when the mouse is moved over this window
+	 * 
+	 * @param hoverListener the listener to call when the mouse is moved
+	 */
+	public void setHoverListener(HoverListener hoverListener) {
+		this.hoverListener = hoverListener != null ? hoverListener : HoverListener.NOTHING;
+	}
+
+	/**
+	 * Sets the position of the cursor on the window
+	 * 
+	 * @param x x-position of the cursor
+	 * @param y y-position of the cursor
+	 */
+	public void setCursorPos(double x, double y) {
+		glfwSetCursorPos(handle, x, y);
+	}
+
+	/**
+	 * Sets if the cursor should be hidden and fixed
+	 * 
+	 * @param hidden {@code true} if the cursor should be hidden, {@code false}
+	 *               otherwise
+	 * @param fixed  {@code true} if the cursor should be fixed in the center of the
+	 *               window, {@code false} otherwise.<br />
+	 *               If the cursor should be fixed, it must also be hidden!
+	 */
+	public void setCursorHiddenFixed(boolean hidden, boolean fixed) {
+		if (fixed && !hidden)
+			throw new IllegalArgumentException("Can not fix cursor when not hidden");
+		if (!hidden) {
+			glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		} else {
+			if (!fixed) {
+				glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			} else {
+				glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			}
+		}
 	}
 
 	/**
