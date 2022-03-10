@@ -213,6 +213,14 @@ public class Viewport implements Renderable, ClickListener {
 
 		viewportSize = aspectMode.getSize(x, y, w, h, camera.getWidth(), camera.getHeight());
 
+		updateProjection();
+	}
+
+	/**
+	 * Updates the projection matrix.<br />
+	 * Only has to be called when the camera settings changed.
+	 */
+	public void updateProjection() {
 		camera.updateProjection(viewportSize.cameraWidth, viewportSize.cameraHeight);
 	}
 
