@@ -27,6 +27,7 @@ import org.lwjgl.system.MemoryUtil;
 import tv.floeze.bottleengine.client.graphics.click.ClickListener;
 import tv.floeze.bottleengine.client.graphics.io.ImageLoader;
 import tv.floeze.bottleengine.client.graphics.keys.KeyListener;
+import tv.floeze.bottleengine.client.graphics.mouse.ScrollListener;
 import tv.floeze.bottleengine.common.threads.Runner;
 
 /**
@@ -178,6 +179,13 @@ public class Window {
 	 */
 	private KeyListener keyListener = KeyListener.NOTHING;
 
+	/**
+	 * Gets called when the user scrolls on the window
+	 * 
+	 * @see #setScrollListener(ScrollListener)
+	 */
+	private ScrollListener scrollListener = ScrollListener.NOTHING;
+
 	static {
 		Runner.MAIN.repeat(GLFW::glfwPollEvents);
 	}
@@ -241,6 +249,7 @@ public class Window {
 		});
 		glfwSetKeyCallback(handle,
 				(window, key, scancode, action, mods) -> keyListener.onKey(key, scancode, action, mods));
+		glfwSetScrollCallback(handle, (window, xoffset, yoffset) -> scrollListener.onScroll(xoffset, yoffset));
 
 		runner.run(() -> {
 			glfwMakeContextCurrent(handle);
@@ -417,6 +426,15 @@ public class Window {
 	 */
 	public void setKeyListener(KeyListener keyListener) {
 		this.keyListener = keyListener != null ? keyListener : KeyListener.NOTHING;
+	}
+
+	/**
+	 * Sets a listener to be executed when the user scrolls in this window
+	 * 
+	 * @param scrollListener the listener to call when the user scrolls
+	 */
+	public void setScrollListener(ScrollListener scrollListener) {
+		this.scrollListener = scrollListener != null ? scrollListener : ScrollListener.NOTHING;
 	}
 
 	/**
