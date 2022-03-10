@@ -526,6 +526,21 @@ public class Window {
 	}
 
 	/**
+	 * Sets if depth test should be enabled.<br />
+	 * Normally set to {@code true} if rendering in 3D and to {@code false} if
+	 * rendering in 2D.
+	 * 
+	 * @param depthTest {@code true} if depth test should be enabled,
+	 *                  {@code false otherwise}
+	 */
+	public void setDepthTest(boolean depthTest) {
+		if (depthTest)
+			glEnable(GL_DEPTH_TEST);
+		else
+			glDisable(GL_DEPTH_TEST);
+	}
+
+	/**
 	 * Clears the screen
 	 */
 	private void clear() {
