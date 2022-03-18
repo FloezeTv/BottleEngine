@@ -1,5 +1,6 @@
 package tv.floeze.bottleengine.client.graphics.window;
 
+import static org.lwjgl.opengl.GL11.glScissor;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 import tv.floeze.bottleengine.client.graphics.Renderable;
@@ -24,6 +25,11 @@ public class Viewport implements Renderable, ClickListener {
 	 * The size of this viewport
 	 */
 	private AspectMode.Size viewportSize;
+
+	/**
+	 * The size of this viewport in pixels in the window
+	 */
+	private int viewportX, viewportY, viewportWidth, viewportHeight;
 
 	/**
 	 * If this viewport is currently visible
@@ -206,12 +212,13 @@ public class Viewport implements Renderable, ClickListener {
 	 * @param height height of the window to render in
 	 */
 	public void updateSize(int width, int height) {
-		int x = (int) (width * xStart);
-		int y = (int) (height * yStart);
-		int w = (int) (width * xEnd - x);
-		int h = (int) (height * yEnd - y);
+		viewportX = (int) (width * xStart);
+		viewportY = (int) (height * yStart);
+		viewportWidth = (int) (width * xEnd - viewportX);
+		viewportHeight = (int) (height * yEnd - viewportY);
 
-		viewportSize = aspectMode.getSize(x, y, w, h, camera.getWidth(), camera.getHeight());
+		viewportSize = aspectMode.getSize(viewportX, viewportY, viewportWidth, viewportHeight, camera.getWidth(),
+				camera.getHeight());
 
 		updateProjection();
 	}
@@ -233,6 +240,7 @@ public class Viewport implements Renderable, ClickListener {
 			return;
 
 		glViewport(viewportSize.x, viewportSize.y, viewportSize.width, viewportSize.height);
+		glScissor(viewportX, viewportY, viewportWidth, viewportHeight);
 
 		camera.setMatrices();
 

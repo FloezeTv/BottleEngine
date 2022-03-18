@@ -274,6 +274,8 @@ public class Window {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+			glEnable(GL_SCISSOR_TEST);
+
 			glViewport(0, 0, width, height);
 		}).thenRun(() -> runner.repeat(() -> {
 			if (!glfwWindowShouldClose(handle)) {
@@ -544,6 +546,7 @@ public class Window {
 	 * Clears the screen
 	 */
 	private void clear() {
+		glDisable(GL_SCISSOR_TEST);
 		if (clearColor != null) {
 			glClearColor(clearColor.getRed() / 255f, clearColor.getGreen() / 255f, clearColor.getBlue() / 255f,
 					clearColor.getBlue() / 255f);
@@ -551,6 +554,7 @@ public class Window {
 		} else {
 			glClear(GL_DEPTH_BUFFER_BIT);
 		}
+		glEnable(GL_SCISSOR_TEST);
 	}
 
 	/**
