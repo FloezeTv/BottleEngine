@@ -23,12 +23,14 @@ import tv.floeze.bottleengine.client.graphics.window.Viewport;
  * the cameras coordinate system (0 - {@link #getWidth()}, 0 -
  * {@link #getHeight()}).<br />
  * 
- * This uses uniform buffer at index 0 for view and projection matrix:
+ * This uses uniform buffer at index 0 for view and projection matrix as well as
+ * the camera position:
  * 
  * <pre>
  * layout (std140) uniform Camera {
- *     mat4 view;
- *     mat4 projection;
+ *     mat4 cView;
+ *     mat4 cProjection;
+ *     vec3 cPosition;
  * };
  * </pre>
  * 
@@ -67,8 +69,8 @@ public abstract class Camera extends Transformable implements ClickListener {
 
 		ubo = glGenBuffers();
 		glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-		// allocate buffer for 2 matrices with 4 * 4 floats
-		glBufferData(GL_UNIFORM_BUFFER, (2 * (4 * 4)) * Float.BYTES, GL_DYNAMIC_DRAW);
+		// allocate buffer for 2 matrices with 4 * 4 floats and one vector with 3 floats
+		glBufferData(GL_UNIFORM_BUFFER, (2 * (4 * 4) + 1 * 3) * Float.BYTES, GL_DYNAMIC_DRAW);
 
 		updateProjection(width, height);
 	}
@@ -99,6 +101,8 @@ public abstract class Camera extends Transformable implements ClickListener {
 
 		glBufferSubData(GL_UNIFORM_BUFFER, (0 * (4 * 4)) * Float.BYTES, viewMatrix.get(new float[4 * 4]));
 		glBufferSubData(GL_UNIFORM_BUFFER, (1 * (4 * 4)) * Float.BYTES, projectionMatrix.get(new float[4 * 4]));
+		glBufferSubData(GL_UNIFORM_BUFFER, (2 * (4 * 4)) * Float.BYTES,
+				new float[] { (float) getPosition().x, (float) getPosition().y, (float) getPosition().z });
 
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
 	}

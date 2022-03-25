@@ -32,16 +32,151 @@ import tv.floeze.bottleengine.common.threads.RunnerLocal;
  * 
  * By default, this includes the following helper-methods for every shader:
  * 
- * <ul>
- * <li>Camera
- * <ul>
- * <li>{@code void set_position(mat4 model, vec3 position);} Sets the
- * gl_Position to the result of calculate_position</li>
- * <li>{@code vec4 calculate_position(mat4 model, vec3 position);} Calculates
- * the vec4 for OpenGL including the camera</li>
- * </ul>
- * </li>
- * </ul>
+ * <table>
+ * <thead>
+ * <tr>
+ * <th>Function</th>
+ * <th>Description</th>
+ * <th>Vertex Shader</th>
+ * <th>Geometry Shader</th>
+ * <th>Fragment Shader</th>
+ * </tr>
+ * </thead> <tbody>
+ * <tr>
+ * <td>{@code void set_position(mat4 model, vec3 position);}</td>
+ * <td>Sets the gl_Position to the result of calculate_position</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#10060;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code vec4 calculate_position(mat4 model, vec3 position);}</td>
+ * <td>Calculates the vec4 for OpenGL including the camera</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#10060;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code vec3 get_camera_position();}</td>
+ * <td>Gets the camera position</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code bool should_render(int mask);}</td>
+ * <td>Checks if all parts of a mask should be rendered</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code bool should_render_albedo();}</td>
+ * <td>Checks if albedo should be rendered</td>
+ * <td>&#10060;</td>
+ * <td>&#10060;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code bool should_render_position();}</td>
+ * <td>Checks if position should be rendered</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code bool should_render_normal();}</td>
+ * <td>Checks if normal should be rendered</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code bool should_render_specular()}</td>
+ * <td>Checks if specular should be rendered</td>
+ * <td>&#10060;</td>
+ * <td>&#10060;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code void render_albedo(vec4 albedo)}</td>
+ * <td>Renders albedo</td>
+ * <td>&#10060;</td>
+ * <td>&#10060;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code void render_position(vec4 position);}</td>
+ * <td>Renders position</td>
+ * <td>&#10060;</td>
+ * <td>&#10060;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code void render_normal(vec3 normal);}</td>
+ * <td>Renders normal</td>
+ * <td>&#10060;</td>
+ * <td>&#10060;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code void render_specular(float specular);}</td>
+ * <td>Renders specular</td>
+ * <td>&#10060;</td>
+ * <td>&#10060;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code void copy_position();}</td>
+ * <td>Copies position from position set in vertex shader</td>
+ * <td>&#10060;</td>
+ * <td>&#10060;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code void copy_normal();}</td>
+ * <td>Copies normal from normal set in vertex shader</td>
+ * <td>&#10060;</td>
+ * <td>&#10060;</td>
+ * <td>&#9989;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code vec4 calculate_position_world(mat4 model, vec3 position);}</td>
+ * <td>Calculates the position in the world using the model matrix</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#10060;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code vec4 calculate_position(mat4 model, vec3 position);}</td>
+ * <td>Calculates the vec4 for OpenGL including the camera</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#10060;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code void set_position(mat4 model, vec3 position)}</td>
+ * <td>Sets the gl_Position to the result of calculate_position</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#10060;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code vec3 calculate_normal(mat4 model, vec3 normal);}</td>
+ * <td>Calculates the normal vector using a model matrix</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#10060;</td>
+ * </tr>
+ * <tr>
+ * <td>{@code void set_normal(mat4 model, vec3 normal);}</td>
+ * <td>Sets the normal vector to the result of calculate_normal</td>
+ * <td>&#9989;</td>
+ * <td>&#9989;</td>
+ * <td>&#10060;</td>
+ * </tr>
+ * </tbody>
+ * </table>
  * 
  * @author Floeze
  *

@@ -79,6 +79,8 @@ public abstract class ColoredShape extends Transformable implements Renderable, 
 
 	private Color color = Color.BLACK;
 
+	private float specular = 0.2f;
+
 	/**
 	 * Creates a new colored shape.
 	 * 
@@ -117,11 +119,30 @@ public abstract class ColoredShape extends Transformable implements Renderable, 
 		return color;
 	}
 
+	/**
+	 * Sets the specular strength of this shape.
+	 * 
+	 * @param specular the new specular strength of this shape
+	 */
+	public void setSpecular(float specular) {
+		this.specular = specular;
+	}
+
+	/**
+	 * Gets the specular strength of this shape.
+	 * 
+	 * @return the specular shape of this shape
+	 */
+	public float getSpecular() {
+		return specular;
+	}
+
 	@Override
 	public void render() {
 		shader.use();
 		shader.set("model", getTransform());
 		shader.setWithAlpha("color", color);
+		shader.set("specular", specular);
 		setShaderUnforms(shader);
 
 		glBindVertexArray(vao);

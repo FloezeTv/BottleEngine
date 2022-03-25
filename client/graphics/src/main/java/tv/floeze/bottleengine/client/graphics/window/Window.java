@@ -578,6 +578,7 @@ public class Window {
 	 */
 	public boolean addViewport(Viewport viewport) {
 		if (!viewports.contains(viewport)) {
+			viewport.setParent(this);
 			updateViewport(viewport);
 			viewports.add(viewport);
 			return true;
@@ -595,6 +596,7 @@ public class Window {
 	 */
 	public boolean addViewport(int index, Viewport viewport) {
 		if (!viewports.contains(viewport)) {
+			viewport.setParent(this);
 			updateViewport(viewport);
 			viewports.add(Math.max(Math.min(index, viewports.size()), 0), viewport);
 			return true;
@@ -613,6 +615,7 @@ public class Window {
 	 */
 	public boolean addViewportUnder(Viewport check, Viewport viewport) {
 		if (!viewports.contains(viewport) && viewports.contains(check)) {
+			viewport.setParent(this);
 			updateViewport(viewport);
 			viewports.add(viewports.indexOf(check), viewport);
 			return true;
@@ -631,6 +634,7 @@ public class Window {
 	 */
 	public boolean addViewportOver(Viewport check, Viewport viewport) {
 		if (!viewports.contains(viewport) && viewports.contains(check)) {
+			viewport.setParent(this);
 			updateViewport(viewport);
 			viewports.add(viewports.indexOf(check) + 1, viewport);
 			return true;
@@ -646,6 +650,7 @@ public class Window {
 	 *         otherwise
 	 */
 	public boolean removeViewport(Viewport viewport) {
+		viewport.setParent(null);
 		return viewports.remove(viewport);
 	}
 

@@ -79,6 +79,8 @@ public class Sprite extends ClickableTransformableRectangle implements Renderabl
 	private final int vao;
 	private final Shader shader;
 
+	private float specular = 0.2f;
+
 	/**
 	 * Creates a new sprite
 	 * 
@@ -90,6 +92,24 @@ public class Sprite extends ClickableTransformableRectangle implements Renderabl
 		shader = shaders.get(this);
 	}
 
+	/**
+	 * Sets the specular strength of this sprite
+	 * 
+	 * @param specular the new specular strength of this sprite
+	 */
+	public void setSpecular(float specular) {
+		this.specular = specular;
+	}
+
+	/**
+	 * Gets the specular strength of this sprite
+	 * 
+	 * @return the specular shape of this sprite
+	 */
+	public float getSpecular() {
+		return specular;
+	}
+
 	@Override
 	public void render() {
 		texture.bind(GL_TEXTURE0);
@@ -97,6 +117,7 @@ public class Sprite extends ClickableTransformableRectangle implements Renderabl
 		shader.use();
 		shader.set("model", getTransform());
 		shader.set("texture", 0);
+		shader.set("specular", specular);
 
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, INDICES.length, GL_UNSIGNED_INT, 0);

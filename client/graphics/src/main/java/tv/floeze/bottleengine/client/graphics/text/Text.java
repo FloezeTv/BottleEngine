@@ -49,6 +49,10 @@ public class Text extends Transformable implements Renderable, Disposable {
 	 * Variables needed for only displaying part of the text
 	 */
 	private int cutLeft, cutRight, start, end;
+	/**
+	 * Specular strength
+	 */
+	private float specular = 0.2f;
 
 	/**
 	 * Creates a new {@link Text}
@@ -91,6 +95,24 @@ public class Text extends Transformable implements Renderable, Disposable {
 	 */
 	public void setColor(Color color) {
 		this.color = color;
+	}
+
+	/**
+	 * Sets the specular strength of this text
+	 * 
+	 * @param specular the new specular strength of this text
+	 */
+	public void setSpecular(float specular) {
+		this.specular = specular;
+	}
+
+	/**
+	 * Gets the specular strength of this text
+	 * 
+	 * @return the specular shape of this text
+	 */
+	public float getSpecular() {
+		return specular;
 	}
 
 	/**
@@ -150,6 +172,7 @@ public class Text extends Transformable implements Renderable, Disposable {
 		shader.use();
 		shader.set("model", modelToUse);
 		shader.set("color", color);
+		shader.set("specular", specular);
 		glBindVertexArray(vao);
 		glDrawArrays(GL_TRIANGLES, start, end);
 	}

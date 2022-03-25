@@ -306,6 +306,19 @@ public class Font implements Disposable {
 	 * @param color color to draw text in
 	 */
 	public void drawString(float x, float y, String text, Color color) {
+		drawString(x, y, text, color, 0.2f);
+	}
+
+	/**
+	 * Draws a string to the screen
+	 * 
+	 * @param x        x-coordinate to start drawing from
+	 * @param y        y-coordinate to start drawing from
+	 * @param text     text to draw
+	 * @param color    color to draw text in
+	 * @param specular specular strength of the text
+	 */
+	public void drawString(float x, float y, String text, Color color, float specular) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -316,6 +329,7 @@ public class Font implements Disposable {
 		shader.use();
 		shader.set("model", new Matrix4f());
 		shader.set("color", color);
+		shader.set("specular", specular);
 
 		verticesMinLength(text.length());
 

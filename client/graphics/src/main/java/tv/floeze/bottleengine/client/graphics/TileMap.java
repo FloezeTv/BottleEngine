@@ -71,6 +71,8 @@ public class TileMap extends Transformable implements Renderable, Disposable {
 
 	private final Shader shader;
 
+	private float specular = 0.2f;
+
 	/**
 	 * The size of this {@link TileMap} (how many tiles in x- and y-direction)
 	 */
@@ -131,12 +133,31 @@ public class TileMap extends Transformable implements Renderable, Disposable {
 		glBufferSubData(GL_ARRAY_BUFFER, 0, tiles);
 	}
 
+	/**
+	 * Sets the specular strength of this tilemap
+	 * 
+	 * @param specular the new specular strength of this tilemap
+	 */
+	public void setSpecular(float specular) {
+		this.specular = specular;
+	}
+
+	/**
+	 * Gets the specular strength of this tilemap
+	 * 
+	 * @return the specular shape of this tilemap
+	 */
+	public float getSpecular() {
+		return specular;
+	}
+
 	@Override
 	public void render() {
 		shader.use();
 		shader.set("tileMapSize", size);
 		shader.set("tileSetSize", tileset.dimensions);
 		shader.set("model", getTransform());
+		shader.set("specular", specular);
 		glBindVertexArray(vao);
 		tileset.texture.bind();
 		glDrawArrays(GL_POINTS, 0, tiles.length);

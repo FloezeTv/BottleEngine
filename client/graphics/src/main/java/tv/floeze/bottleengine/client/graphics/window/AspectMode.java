@@ -96,11 +96,11 @@ public interface AspectMode {
 		/**
 		 * Viewport size
 		 */
-		public int x, y, width, height;
+		public final int x, y, width, height;
 		/**
 		 * Camera size
 		 */
-		public int cameraWidth, cameraHeight;
+		public final int cameraWidth, cameraHeight;
 
 		public Size(int x, int y, int width, int height, int cameraWidth, int cameraHeight) {
 			this.x = x;
@@ -109,9 +109,6 @@ public interface AspectMode {
 			this.height = height;
 			this.cameraWidth = cameraWidth;
 			this.cameraHeight = cameraHeight;
-		}
-
-		public Size() {
 		}
 
 		@Override

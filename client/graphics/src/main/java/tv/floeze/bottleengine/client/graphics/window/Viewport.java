@@ -1,8 +1,5 @@
 package tv.floeze.bottleengine.client.graphics.window;
 
-import static org.lwjgl.opengl.GL11.glScissor;
-import static org.lwjgl.opengl.GL11.glViewport;
-
 import tv.floeze.bottleengine.client.graphics.Renderable;
 import tv.floeze.bottleengine.client.graphics.camera.Camera;
 import tv.floeze.bottleengine.client.graphics.click.ClickListener;
@@ -54,6 +51,16 @@ public class Viewport implements Renderable, ClickListener {
 	private Renderable content;
 
 	/**
+	 * The {@link Renderer} of this {@link Viewport}
+	 */
+	private Renderer renderer;
+
+	/**
+	 * The parent of this {@link Viewport}
+	 */
+	private Window parent;
+
+	/**
 	 * Creates a new Viewport that fills the entire window
 	 * 
 	 * @param camera the {@link Camera} of this {@link Viewport}
@@ -96,9 +103,26 @@ public class Viewport implements Renderable, ClickListener {
 	 * @param content the {@link Renderable} to render
 	 */
 	public Viewport(double xStart, double yStart, double xEnd, double yEnd, Camera camera, Renderable content) {
+		this(xStart, yStart, xEnd, yEnd, camera, content, new ForwardsRenderer());
+	}
+
+	/**
+	 * Creates a new viewport that fills a part of the window
+	 * 
+	 * @param xStart   percent of window width the {@link Viewport} starts at
+	 * @param yStart   percent of window height the {@link Viewport} starts at
+	 * @param xEnd     percent of window width the {@link Viewport} ends at
+	 * @param yEnd     percent of window height the {@link Viewport} ends at
+	 * @param camera   the {@link Camera} of this {@link Viewport}
+	 * @param content  the {@link Renderable} to render
+	 * @param renderer the {@link Renderer} to use
+	 */
+	public Viewport(double xStart, double yStart, double xEnd, double yEnd, Camera camera, Renderable content,
+			Renderer renderer) {
 		setBounds(xStart, yStart, xEnd, yEnd);
 		setCamera(camera);
 		setContent(content);
+		setRenderer(renderer);
 	}
 
 	/**
@@ -206,6 +230,60 @@ public class Viewport implements Renderable, ClickListener {
 	}
 
 	/**
+	 * Sets the new parent of this {@link Viewport}
+	 * 
+	 * @param parent the new parent of this {@link Viewport}
+	 */
+	protected void setParent(Window parent) {
+		if (this.parent != null) {
+			this.parent.execute(this::deinitializeRenderer);
+			this.parent.removeViewport(this);
+		}
+
+		this.parent = parent;
+
+		if (this.parent != null)
+			this.parent.execute(this::initializeRenderer).join(); // must initialize before doing anything else
+	}
+
+	/**
+	 * Deinitializes the {@link #renderer}
+	 */
+	private void deinitializeRenderer() {
+		renderer.deinitialize();
+	}
+
+	/**
+	 * Initializes the {@link #renderer}.
+	 */
+	private void initializeRenderer() {
+		renderer.initialize();
+		if (viewportSize == null)
+			renderer.updateSize(1, 1);
+		else
+			renderer.updateSize(viewportSize.cameraWidth, viewportSize.cameraHeight);
+	}
+
+	/**
+	 * Sets the {@link Renderer} of this {@link Viewport}
+	 * 
+	 * @param renderer the new {@link Renderer} of this {@link Viewport}
+	 */
+	public void setRenderer(Renderer renderer) {
+		if (renderer == null)
+			renderer = new ForwardsRenderer();
+		if (this.renderer != null) {
+			if (parent != null)
+				parent.execute(this::deinitializeRenderer).join();
+			this.renderer.setParent(null);
+		}
+		this.renderer = renderer;
+		this.renderer.setParent(this);
+		if (parent != null)
+			parent.execute(this::initializeRenderer).join();
+	}
+
+	/**
 	 * Updates the size of this viewport
 	 * 
 	 * @param width  width of the window to render in
@@ -221,6 +299,53 @@ public class Viewport implements Renderable, ClickListener {
 				camera.getHeight());
 
 		updateProjection();
+
+		parent.execute(() -> renderer.updateSize(viewportSize.cameraWidth, viewportSize.cameraHeight));
+	}
+
+	/**
+	 * Gets the size of this {@link Viewport}
+	 * 
+	 * @return
+	 */
+	public AspectMode.Size getViewportSize() {
+		return viewportSize;
+	}
+
+	/**
+	 * Gets the x coordinate of this {@link Viewport} in the {@link Window}
+	 * 
+	 * @return the x coordinate of this {@link Viewport} in the {@link Window}
+	 */
+	public int getViewportX() {
+		return viewportX;
+	}
+
+	/**
+	 * Gets the y coordinate of this {@link Viewport} in the {@link Window}
+	 * 
+	 * @return the y coordinate of this {@link Viewport} in the {@link Window}
+	 */
+	public int getViewportY() {
+		return viewportY;
+	}
+
+	/**
+	 * Gets the width of this {@link Viewport} in the {@link Window}
+	 * 
+	 * @return the width of this {@link Viewport} in the {@link Window}
+	 */
+	public int getViewportWidth() {
+		return viewportWidth;
+	}
+
+	/**
+	 * Gets the height of this {@link Viewport} in the {@link Window}
+	 * 
+	 * @return the height of this {@link Viewport} in the {@link Window}
+	 */
+	public int getViewportHeight() {
+		return viewportHeight;
 	}
 
 	/**
@@ -239,12 +364,7 @@ public class Viewport implements Renderable, ClickListener {
 		if (!visible)
 			return;
 
-		glViewport(viewportSize.x, viewportSize.y, viewportSize.width, viewportSize.height);
-		glScissor(viewportX, viewportY, viewportWidth, viewportHeight);
-
-		camera.setMatrices();
-
-		content.render();
+		renderer.render(content);
 	}
 
 	/**
