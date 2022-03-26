@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
@@ -40,12 +41,6 @@ import tv.floeze.bottleengine.common.threads.Runner;
 public class Window {
 
 	/*
-	 * Bugs:
-	 * 
-	 * - close callback can be too slow: Window#setCloseHandler(() -> false); and
-	 * spam click close very fast
-	 * 
-	 * 
 	 * Considerations:
 	 * 
 	 * - add a builder class
@@ -167,6 +162,11 @@ public class Window {
 	private BooleanSupplier closeHandler = () -> true;
 
 	/**
+	 * If the closeHandler was executed
+	 */
+	private AtomicBoolean executedCloseHandler = new AtomicBoolean(false);
+
+	/**
 	 * Gets called when the window is clicked on
 	 * 
 	 * @see #setClickListener(ClickListener)
@@ -242,7 +242,10 @@ public class Window {
 
 		// set callbacks
 		glfwSetFramebufferSizeCallback(handle, (window, w, h) -> execute(() -> updateViewports(w, h)));
-		glfwSetWindowCloseCallback(handle, window -> glfwSetWindowShouldClose(window, closeHandler.getAsBoolean()));
+		glfwSetWindowCloseCallback(handle, window -> {
+			glfwSetWindowShouldClose(window, closeHandler.getAsBoolean());
+			executedCloseHandler.set(true);
+		});
 		glfwSetMouseButtonCallback(handle, (window, button, action, mods) -> {
 			try (MemoryStack stack = MemoryStack.stackPush()) {
 				DoubleBuffer x = stack.doubles(1);
@@ -278,7 +281,8 @@ public class Window {
 
 			glViewport(0, 0, width, height);
 		}).thenRun(() -> runner.repeat(() -> {
-			if (!glfwWindowShouldClose(handle)) {
+			// closeHandler was not executed or window should not close
+			if (!executedCloseHandler.getAndSet(false) || !glfwWindowShouldClose(handle)) {
 				clear();
 
 				render();
