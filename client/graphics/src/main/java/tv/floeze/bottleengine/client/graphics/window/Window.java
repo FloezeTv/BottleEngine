@@ -215,13 +215,13 @@ public class Window {
 	 * @param width   the width of the window
 	 * @param height  the height of the window
 	 * @param title   the title of the window
-	 * @param monitor a monitor to use for fullscreen or {@code 0} if windowed
+	 * @param monitor a monitor to use for fullscreen or {@code null} if windowed
 	 * @param share   another {@link Window} to share resources with its context or
 	 *                {@code null} if no resources should be shared
 	 * 
 	 * @see GLFW#glfwCreateWindow(int, int, CharSequence, long, long)
 	 */
-	public Window(int width, int height, CharSequence title, long monitor, Window share) {
+	public Window(int width, int height, CharSequence title, Monitor monitor, Window share) {
 		initGlfw();
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -233,7 +233,7 @@ public class Window {
 		if (DEBUG)
 			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
-		handle = glfwCreateWindow(width, height, title, monitor > 0 ? monitor : NULL,
+		handle = glfwCreateWindow(width, height, title, monitor != null ? monitor.getHandle() : NULL,
 				share != null ? share.handle : NULL);
 		updateViewports(width, height);
 
