@@ -8,4 +8,11 @@
 	<packaging>pom</packaging>
 	<name>BottleEngine Server</name>
 	<description>The server for the BottleEngine.</description>
+	<dependencies>
+		<dependency>
+			<groupId>tv.floeze.bottleengine.server</groupId>
+			<artifactId>networking</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 </project>
