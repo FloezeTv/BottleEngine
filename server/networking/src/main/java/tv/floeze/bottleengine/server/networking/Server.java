@@ -50,10 +50,6 @@ public class Server {
 	 */
 	private final byte[] beginPacket;
 	/**
-	 * The version of this server
-	 */
-	private final int version;
-	/**
 	 * The versions this server is compatible with
 	 */
 	private final int[] compatibleVersions;
@@ -70,13 +66,11 @@ public class Server {
 	 * 
 	 * @param port               the port to listen on
 	 * @param beginPacket        the bytes used to denote a packet start
-	 * @param version            the version of this server
 	 * @param compatibleVersions the versions this server is compatible with
 	 */
-	public Server(int port, byte[] beginPacket, int version, int... compatibleVersions) {
+	public Server(int port, byte[] beginPacket, int... compatibleVersions) {
 		this.port = port;
 		this.beginPacket = beginPacket;
-		this.version = version;
 		this.compatibleVersions = compatibleVersions;
 	}
 
@@ -96,7 +90,8 @@ public class Server {
 
 		ServerBootstrap bootstrap = new ServerBootstrap().group(bossGroup, workerGroup)
 				.channel(NioServerSocketChannel.class)
-				.childHandler(new PacketChannelInitializer(beginPacket, version, compatibleVersions));
+				.childHandler(new PacketChannelInitializer(beginPacket, true, v -> {
+				}, compatibleVersions));
 
 		CompletableFuture<Void> future = new CompletableFuture<>();
 		bootstrap.bind(port).addListener(v -> state = State.RUNNING).addListener(v -> future.complete(null));

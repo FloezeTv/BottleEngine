@@ -20,7 +20,7 @@ public class PacketEncoder extends MessageToMessageEncoder<Packet> {
 		if (packetInfo == null)
 			throw new MissingPacketInfoException(msg.getClass());
 
-		RawPacket raw = new RawPacket(packetInfo.header(), packetInfo.version());
+		RawPacket raw = new RawPacket(packetInfo.header());
 		msg.encode(raw);
 		out.add(raw);
 	}

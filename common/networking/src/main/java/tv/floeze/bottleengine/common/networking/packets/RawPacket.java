@@ -23,10 +23,6 @@ public class RawPacket {
 	 */
 	private final int header;
 	/**
-	 * The version of the {@link Packet} this {@link RawPacket} represents
-	 */
-	private final int version;
-	/**
 	 * The raw data of the {@link Packet} this {@link RawPacket} represents
 	 */
 	private final ByteBuf data;
@@ -35,13 +31,10 @@ public class RawPacket {
 	 * Creates a new {@link RawPacket} for the given {@code header} and
 	 * {@code version} and initializes an empty {@link #data}-Buffer
 	 * 
-	 * @param header  header of the {@link Packet} this {@link RawPacket} represents
-	 * @param version version of the {@link Packet} this {@link RawPacket}
-	 *                represents
+	 * @param header header of the {@link Packet} this {@link RawPacket} represents
 	 */
-	public RawPacket(int header, int version) {
+	public RawPacket(int header) {
 		this.header = header;
-		this.version = version;
 		this.data = Unpooled.buffer();
 	}
 
@@ -329,15 +322,6 @@ public class RawPacket {
 	}
 
 	/**
-	 * Gets the version of the {@link Packet} this {@link RawPacket} represents
-	 * 
-	 * @return the version
-	 */
-	public int getVersion() {
-		return version;
-	}
-
-	/**
 	 * Gets the data of the {@link Packet} this {@link RawPacket} represents.<br />
 	 * This can be written to when encoding the {@link Packet} and read form when
 	 * decoding the {@link Packet}
@@ -350,7 +334,7 @@ public class RawPacket {
 
 	@Override
 	public String toString() {
-		return "RawPacket [header=" + header + ", version=" + version + ", data=" + data.readableBytes() + "B]";
+		return "RawPacket [header=" + header + ", data=" + data.readableBytes() + "B]";
 	}
 
 }

@@ -16,10 +16,6 @@ public class RawPacketEncoder extends MessageToByteEncoder<RawPacket> {
 	 * The byte sequence used to determine a packet start
 	 */
 	private final byte[] beginPacket;
-	/**
-	 * The version to annotate packets with
-	 */
-	private final int version;
 
 	/**
 	 * The constant length each packet has
@@ -30,18 +26,14 @@ public class RawPacketEncoder extends MessageToByteEncoder<RawPacket> {
 	 * Creates a new {@link RawPacketEncoder}
 	 * 
 	 * @param beginPacket the byte sequence used to determine a packet start
-	 * @param version     the version to annotate packets with
 	 */
-	public RawPacketEncoder(byte[] beginPacket, int version) {
+	public RawPacketEncoder(byte[] beginPacket) {
 		this.beginPacket = beginPacket;
-		this.version = version;
 
 		constantLength = //
 				beginPacket.length * Byte.BYTES // beginPacket
-						+ 1 * Integer.BYTES // version
 						+ 1 * Integer.BYTES // length
 						+ 1 * Integer.BYTES // packet header
-						+ 1 * Integer.BYTES // packet version
 						+ 1 * Long.BYTES; // packet hash
 	}
 
@@ -51,8 +43,6 @@ public class RawPacketEncoder extends MessageToByteEncoder<RawPacket> {
 
 		// start
 		out.writeBytes(beginPacket);
-		// version
-		out.writeInt(version);
 		// length
 		out.writeInt(constantLength + msg.byteLength());
 
@@ -60,8 +50,6 @@ public class RawPacketEncoder extends MessageToByteEncoder<RawPacket> {
 
 		// packet header
 		out.writeInt(msg.getHeader());
-		// packet version
-		out.writeInt(msg.getVersion());
 		// packet hash
 		out.writeLong(msg.computeHash());
 		// packet data

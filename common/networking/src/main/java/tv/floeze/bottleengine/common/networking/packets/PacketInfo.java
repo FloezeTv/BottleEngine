@@ -24,19 +24,10 @@ public @interface PacketInfo {
 	public int header();
 
 	/**
-	 * The version of the implementation of the packet
+	 * Versions the implementation of the packet is compatible with.
 	 * 
-	 * @return the version of the implementation of the packet
+	 * @return versions the implementations the packet is compatible with
 	 */
-	public int version();
-
-	/**
-	 * Versions the implementation of the packet is compatible with. By default this
-	 * is empty. A {@link Packet} is always compatible with its own version
-	 * ({@link #version()}).
-	 * 
-	 * @return versions the implementation of the packet is compatible with
-	 */
-	public int[] compatibleVersions() default {};
+	public int[] compatibleVersions();
 
 }

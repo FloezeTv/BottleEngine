@@ -4,10 +4,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
+import io.github.classgraph.PackageInfo;
 import io.github.classgraph.ScanResult;
+import nonapi.io.github.classgraph.scanspec.AcceptReject;
 import tv.floeze.bottleengine.common.networking.packets.exceptions.IncompatibleVersionException;
 import tv.floeze.bottleengine.common.networking.packets.exceptions.MissingPacketException;
 
@@ -33,8 +36,7 @@ public class PacketList {
 	 * @param packageName the name of the package to scan for packets
 	 */
 	private PacketList(String packageName) {
-		// header -> version -> difference packageVersion and version
-		Map<Integer, Map<Integer, Integer>> packetVersionDifferences = new HashMap<>();
+		Pattern packagePattern = AcceptReject.globToPattern(packageName, true);
 
 		// scan all classes for Packets and save the closest compatible constructor
 		try (ScanResult scanResult = new ClassGraph().acceptPackages(packageName).enableAnnotationInfo().scan()) {
@@ -43,6 +45,10 @@ public class PacketList {
 					continue;
 				if (classInfo.isAbstract())
 					continue;
+				PackageInfo disabledPackage = getAutoscanDisabledPackage(classInfo.getPackageInfo());
+				if (disabledPackage != null && !packagePattern.matcher(disabledPackage.getName()).find())
+					continue;
+
 				@SuppressWarnings("unchecked")
 				Class<? extends Packet> packetClass = (Class<? extends Packet>) classInfo.loadClass();
 
@@ -54,12 +60,26 @@ public class PacketList {
 
 				Map<Integer, Constructor<? extends Packet>> constructors = packets.computeIfAbsent(info.header(),
 						k -> new HashMap<>());
-				Map<Integer, Integer> versionDifferences = packetVersionDifferences.computeIfAbsent(info.header(),
-						k -> new HashMap<>());
 
-				tryAddConstructors(info, constructor, constructors, versionDifferences);
+				for (int version : info.compatibleVersions())
+					constructors.putIfAbsent(version, constructor);
 			}
 		}
+	}
+
+	/**
+	 * Gets the first parent package with the {@link BlockPacketScan} annotation
+	 * 
+	 * @param packageInfo the package to begin searching at
+	 * @return the first found parent package or {@code null} if none found
+	 */
+	private static PackageInfo getAutoscanDisabledPackage(PackageInfo packageInfo) {
+		if (packageInfo == null)
+			return null;
+		if (packageInfo.hasAnnotation(BlockPacketScan.class))
+			return packageInfo;
+		return getAutoscanDisabledPackage(packageInfo.getParent());
+
 	}
 
 	/**
@@ -78,51 +98,6 @@ public class PacketList {
 			return constructor;
 		} catch (NoSuchMethodException | SecurityException e) {
 			return null;
-		}
-	}
-
-	/**
-	 * Tries to add the given constructor to the passed map of constructors and
-	 * updates the passed map of version differences.<br />
-	 * Will only add the constructor if no other constructor is in the list or the
-	 * other constructor has a bigger version difference.
-	 * 
-	 * @param info               The info of the packet to add the constructor for
-	 * @param constructor        The constructor to add
-	 * @param constructors       The list of constructors to add into (version ->
-	 *                           constructor)
-	 * @param versionDifferences The list of version differences to update (version
-	 *                           -> difference)
-	 */
-	private static void tryAddConstructors(PacketInfo info, Constructor<? extends Packet> constructor,
-			Map<Integer, Constructor<? extends Packet>> constructors, Map<Integer, Integer> versionDifferences) {
-		// a packet is always compatible with its own version
-		tryAddConstructor(info, constructor, info.version(), constructors, versionDifferences);
-		for (int version : info.compatibleVersions())
-			tryAddConstructor(info, constructor, version, constructors, versionDifferences);
-	}
-
-	/**
-	 * Tries to add the given constructor to the passed map of constructors and
-	 * updates the passed map of version differenced.<br />
-	 * Will only add the constructor if no other constructor is in the list or the
-	 * other constructor has a bigger version difference.
-	 * 
-	 * @param info               The info of the packet to add the constructor for
-	 * @param constructor        The constructor to add
-	 * @param version            The version to add the constructor for
-	 * @param constructors       The list of constructors to add into (version ->
-	 *                           constructor)
-	 * @param versionDifferences The list of version differences to update (version
-	 *                           -> difference)
-	 */
-	private static void tryAddConstructor(PacketInfo info, Constructor<? extends Packet> constructor, int version,
-			Map<Integer, Constructor<? extends Packet>> constructors, Map<Integer, Integer> versionDifferences) {
-		int versionDifference = Math.abs(info.version() - version);
-		if (!constructors.containsKey(version)
-				|| versionDifference < versionDifferences.getOrDefault(version, Integer.MAX_VALUE)) {
-			constructors.put(version, constructor);
-			versionDifferences.put(version, versionDifference);
 		}
 	}
 
@@ -158,10 +133,10 @@ public class PacketList {
 	 * @throws IncompatibleVersionException No packet compatible with the given
 	 *                                      version found
 	 */
-	public Packet decode(RawPacket raw)
+	public Packet decode(RawPacket raw, int version)
 			throws InvocationTargetException, MissingPacketException, IncompatibleVersionException {
 		try {
-			return get(raw.getHeader(), raw.getVersion()).newInstance(raw);
+			return get(raw.getHeader(), version).newInstance(raw);
 		} catch (// These exceptions should not be thrown:
 				InstantiationException | // Abstract classes are filtered out
 				IllegalAccessException | // Inaccessible constructors are set accessible or filtered out

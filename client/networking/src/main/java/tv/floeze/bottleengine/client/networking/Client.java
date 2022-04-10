@@ -34,6 +34,10 @@ public class Client {
 		 */
 		CONNECTING,
 		/**
+		 * Client is performing handshake with server
+		 */
+		HANDSHAKING,
+		/**
 		 * Client is connected to a server and packets can be sent
 		 */
 		CONNECTED,
@@ -56,10 +60,6 @@ public class Client {
 	 */
 	private final byte[] beginPacket;
 	/**
-	 * The version of this client
-	 */
-	private final int version;
-	/**
 	 * The versions this client is compatible with
 	 */
 	private final int[] compatibleVersions;
@@ -76,19 +76,22 @@ public class Client {
 	private State state = State.IDLE;
 
 	/**
+	 * The version negotiated between server and client
+	 */
+	private int version;
+
+	/**
 	 * Creates a new {@link Client}
 	 * 
 	 * @param host               the host to connect to
 	 * @param port               the port to connect to
 	 * @param beginPacket        the bytes used to denote a packet start
-	 * @param version            the version of this client
 	 * @param compatibleVersions the versions this client is compatible with
 	 */
-	public Client(String host, int port, byte[] beginPacket, int version, int... compatibleVersions) {
+	public Client(String host, int port, byte[] beginPacket, int... compatibleVersions) {
 		this.host = host;
 		this.port = port;
 		this.beginPacket = beginPacket;
-		this.version = version;
 		this.compatibleVersions = compatibleVersions;
 	}
 
@@ -105,12 +108,16 @@ public class Client {
 
 		workerGroup = new NioEventLoopGroup();
 
-		Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
-				.handler(new PacketChannelInitializer(beginPacket, version, compatibleVersions));
-
 		CompletableFuture<Void> future = new CompletableFuture<>();
-		channel = bootstrap.connect(host, port).addListener(v -> state = State.CONNECTED)
-				.addListener(v -> future.complete(null)).channel();
+
+		Bootstrap bootstrap = new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
+				.handler(new PacketChannelInitializer(beginPacket, false, v -> {
+					state = State.CONNECTED;
+					version = v;
+					future.complete(null);
+				}, compatibleVersions));
+
+		channel = bootstrap.connect(host, port).addListener(v -> state = State.HANDSHAKING).channel();
 		channel.closeFuture().addListener(v -> state = State.IDLE);
 		return future;
 	}
@@ -144,6 +151,17 @@ public class Client {
 		if (state != State.CONNECTED)
 			throw new IllegalStateException("Client not connected");
 		channel.writeAndFlush(packet);
+	}
+
+	/**
+	 * Gets the version that has been negotiated between the client and the server.
+	 * Only returns a useful number if the client is connected
+	 * ({@link #isConnected()}).
+	 * 
+	 * @return the version this client uses
+	 */
+	public int getVersion() {
+		return version;
 	}
 
 	/**

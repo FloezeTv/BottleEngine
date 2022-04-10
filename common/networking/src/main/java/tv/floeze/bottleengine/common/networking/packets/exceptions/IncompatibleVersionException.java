@@ -16,4 +16,8 @@ public class IncompatibleVersionException extends PacketException {
 		super("Version " + version + " is incompatible with versions " + Arrays.toString(compatibleVersions));
 	}
 
+	public IncompatibleVersionException(int[] a, int[] b) {
+		super("No compatible version exists between " + Arrays.toString(a) + " and " + Arrays.toString(b));
+	}
+
 }
