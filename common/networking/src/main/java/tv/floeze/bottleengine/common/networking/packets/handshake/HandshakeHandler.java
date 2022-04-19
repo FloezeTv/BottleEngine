@@ -1,6 +1,6 @@
 package tv.floeze.bottleengine.common.networking.packets.handshake;
 
-import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,13 +25,10 @@ public class HandshakeHandler extends SimpleChannelInboundHandler<Packet> {
 	 */
 	private final int[] compatibleVersions;
 	/**
-	 * The handler that replaces this handler after a successful handshake
+	 * The function to call when a handshake is successful that returns a handler to
+	 * replace this handler
 	 */
-	private final ChannelHandler replacementHandler;
-	/**
-	 * The function to call when a handshake is successful
-	 */
-	private final IntConsumer versionCallback;
+	private final IntFunction<ChannelHandler> versionCallback;
 
 	/**
 	 * Creates a new handshake handler
@@ -41,15 +38,13 @@ public class HandshakeHandler extends SimpleChannelInboundHandler<Packet> {
 	 *                           handler should only reply to received handshakes
 	 * @param compatibleVersions the versions this is compatible with to find the
 	 *                           version to use
-	 * @param replacementHandler the handler that replaces this handler after a
-	 *                           successful handshake
 	 * @param versionCallback    the function to call when a handshake is successful
+	 *                           that returns a handler to replace this handler
 	 */
-	public HandshakeHandler(boolean beginHandshake, int[] compatibleVersions, ChannelHandler replacementHandler,
-			IntConsumer versionCallback) {
+	public HandshakeHandler(boolean beginHandshake, int[] compatibleVersions,
+			IntFunction<ChannelHandler> versionCallback) {
 		this.beginHandshake = beginHandshake;
 		this.compatibleVersions = compatibleVersions;
-		this.replacementHandler = replacementHandler;
 		this.versionCallback = versionCallback;
 	}
 
@@ -93,8 +88,8 @@ public class HandshakeHandler extends SimpleChannelInboundHandler<Packet> {
 	 * @param version the version that resulted of the handshake
 	 */
 	private void handshakeCompleted(ChannelHandlerContext ctx, int version) {
+		ChannelHandler replacementHandler = versionCallback.apply(version);
 		ctx.pipeline().replace(this, null, replacementHandler);
-		versionCallback.accept(version);
 	}
 
 	/**

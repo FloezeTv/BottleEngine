@@ -71,9 +71,10 @@ public class PacketChannelInitializer extends ChannelInitializer<Channel> {
 		ch.pipeline().addLast(packetDecoder);
 
 		// handler
-		ch.pipeline().addLast(new HandshakeHandler(beginHandshake, compatibleVersions, new PacketHandler(), version -> {
+		ch.pipeline().addLast(new HandshakeHandler(beginHandshake, compatibleVersions, version -> {
 			ch.pipeline().replace(packetDecoder, null, new PacketDecoder("", version));
 			handshakeCompleted.accept(version);
+			return new PacketHandler();
 		}));
 	}
 
