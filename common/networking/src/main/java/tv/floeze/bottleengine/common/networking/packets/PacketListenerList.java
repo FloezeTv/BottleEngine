@@ -57,7 +57,12 @@ public class PacketListenerList {
 			if (!method.isAccessible())
 				continue;
 
-			for (int version : annotation.compatibleVersions()) {
+			// If no versions given, by default compatible with every version of the Packet
+			int[] compatibleVersions = annotation.compatibleVersions();
+			if (compatibleVersions.length == 0)
+				compatibleVersions = params[0].getType().getAnnotation(PacketInfo.class).compatibleVersions();
+
+			for (int version : compatibleVersions) {
 				handlers.computeIfAbsent(version, k -> new HashMap<>())
 						.put((Class<? extends Packet>) params[0].getType(), p -> {
 							try {

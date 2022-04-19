@@ -18,10 +18,12 @@ import java.lang.annotation.Target;
 public @interface PacketHandler {
 
 	/**
-	 * The versions that the annotated handler is compatible with.
+	 * The versions that the annotated handler is compatible with.<br />
+	 * By default the handler is compatible with every version the {@link Packet}
+	 * that is handled is compatible with.
 	 * 
 	 * @return an array of versions the annotated handler is compatible with
 	 */
-	public int[] compatibleVersions();
+	public int[] compatibleVersions() default {};
 
 }
