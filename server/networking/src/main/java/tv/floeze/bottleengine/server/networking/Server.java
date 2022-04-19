@@ -6,7 +6,10 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import tv.floeze.bottleengine.common.networking.packets.Packet;
 import tv.floeze.bottleengine.common.networking.packets.PacketChannelInitializer;
+import tv.floeze.bottleengine.common.networking.packets.PacketListener;
+import tv.floeze.bottleengine.common.networking.packets.PacketListenerList;
 
 /**
  * A server that clients can connect to using TCP/IP.
@@ -54,6 +57,11 @@ public class Server {
 	 */
 	private final int[] compatibleVersions;
 
+	/**
+	 * The list of the {@link PacketListener}s
+	 */
+	private final PacketListenerList packetListeners = new PacketListenerList();
+
 	private EventLoopGroup bossGroup, workerGroup;
 
 	/**
@@ -90,7 +98,7 @@ public class Server {
 
 		ServerBootstrap bootstrap = new ServerBootstrap().group(bossGroup, workerGroup)
 				.channel(NioServerSocketChannel.class)
-				.childHandler(new PacketChannelInitializer(beginPacket, true, v -> {
+				.childHandler(new PacketChannelInitializer(beginPacket, packetListeners, true, v -> {
 				}, compatibleVersions));
 
 		CompletableFuture<Void> future = new CompletableFuture<>();
@@ -117,6 +125,16 @@ public class Server {
 		bossGroup = null;
 
 		return CompletableFuture.allOf(workerGroupFuture, bossGroupFuture).thenAccept(v -> state = State.IDLE);
+	}
+
+	/**
+	 * Adds a new {@link PacketListener} to this server that listens for received
+	 * {@link Packet}s
+	 * 
+	 * @param listener the {@link PacketListener} to add
+	 */
+	public void addListener(PacketListener listener) {
+		packetListeners.addListener(listener);
 	}
 
 	/**

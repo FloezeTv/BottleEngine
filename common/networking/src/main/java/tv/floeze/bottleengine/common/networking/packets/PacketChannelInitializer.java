@@ -25,6 +25,8 @@ public class PacketChannelInitializer extends ChannelInitializer<Channel> {
 	 */
 	private final byte[] beginPacket;
 
+	private final PacketListenerList packetListeners;
+
 	/**
 	 * Whether the initialized channel should begin the handshake on new connections
 	 */
@@ -44,6 +46,7 @@ public class PacketChannelInitializer extends ChannelInitializer<Channel> {
 	 * Creates a new {@link PacketChannelInitializer}
 	 * 
 	 * @param beginPacket        the bytes used to denote the start of a packet
+	 * @param packetListeners    the {@link PacketListenerList} to use
 	 * @param beginHandshake     {@code true} if the initialized channel should
 	 *                           begin the handshake on new connections,
 	 *                           {@code false} if the initialized channel should
@@ -51,9 +54,10 @@ public class PacketChannelInitializer extends ChannelInitializer<Channel> {
 	 * @param handshakeCompleted the function to call when a handshake is successful
 	 * @param compatibleVersions the versions this is compatible with
 	 */
-	public PacketChannelInitializer(byte[] beginPacket, boolean beginHandshake, IntConsumer handshakeCompleted,
-			int... compatibleVersions) {
+	public PacketChannelInitializer(byte[] beginPacket, PacketListenerList packetListeners, boolean beginHandshake,
+			IntConsumer handshakeCompleted, int... compatibleVersions) {
 		this.beginPacket = beginPacket;
+		this.packetListeners = packetListeners;
 		this.beginHandshake = beginHandshake;
 		this.handshakeCompleted = handshakeCompleted;
 		this.compatibleVersions = compatibleVersions;
@@ -74,7 +78,7 @@ public class PacketChannelInitializer extends ChannelInitializer<Channel> {
 		ch.pipeline().addLast(new HandshakeHandler(beginHandshake, compatibleVersions, version -> {
 			ch.pipeline().replace(packetDecoder, null, new PacketDecoder("", version));
 			handshakeCompleted.accept(version);
-			return new PacketHandler();
+			return new PacketListenerHandler(packetListeners, version);
 		}));
 	}
 
